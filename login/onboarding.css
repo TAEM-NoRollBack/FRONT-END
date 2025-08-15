@@ -1,0 +1,256 @@
+:root {
+  /* theme */
+  --brand: #ff83a2;
+  --kakao: #fee500;
+  --text: #111;
+
+  /* layout */
+  --maxw: 393px;
+  --hdr: 81px;
+  --formw: 327px;
+
+  /* fields */
+  --field-bg: #f4f4f4; /* 항상 이 색 고정 */
+  --border: rgba(0, 0, 0, 0.06);
+  --radius: 12px;
+  --gap: 16px;
+  --field-gap: 10px;
+  --placeholder: #9aa0a6;
+  --field-h: 44px; /* 입력/셀렉트 높이 */
+}
+
+/* base */
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: #fff;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', system-ui,
+    Segoe UI, Roboto, Helvetica, Arial, 'Apple SD Gothic Neo', 'Malgun Gothic',
+    'Nanum Gothic', sans-serif;
+}
+
+/* frame */
+.frame {
+  width: min(100%, var(--maxw));
+  min-height: 100svh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* topbar */
+.topbar {
+  height: var(--hdr);
+  background: var(--brand);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar.nudged {
+  margin-top: -17px;
+}
+
+/* body content */
+.content {
+  padding: calc(var(--hdr) + 20px) 20px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 공통 폭(가운데 정렬) */
+.k-login,
+.form,
+.cta {
+  width: min(90%, var(--formw));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 타이틀 (필수항목) */
+.title {
+  color: #000;
+  text-align: center;
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Noto Sans KR',
+    system-ui, Segoe UI, Roboto, Helvetica, Arial, 'Apple SD Gothic Neo',
+    'Malgun Gothic', 'Nanum Gothic', sans-serif;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 38.644px; /* 디자인 값 */
+  margin: 4px 0 12px;
+}
+
+/* 카카오 로그인 사용중 칩 */
+.k-login {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 18px;
+}
+.k-login .ico {
+  width: 19px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.k-login .ico svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.k-login .txt {
+  font-size: 14px;
+  color: #3c1e1e;
+}
+
+/* form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--field-gap);
+}
+.field label {
+  font-size: 13px;
+  font-weight: 700;
+}
+.req {
+  color: #ff4d4f;
+  margin-left: 2px;
+}
+
+/* inputs & selects (항상 F4F4F4 배경 고정) */
+input[type='text'],
+input[type='email'],
+select,
+textarea {
+  width: 100%;
+  height: var(--field-h);
+  padding: 0 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--field-bg) !important;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--placeholder);
+  opacity: 1;
+}
+
+/* select 커스텀 화살표 + 컴팩트 */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23222222' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px 14px;
+}
+select::-ms-expand {
+  display: none;
+} /* old IE */
+.form .control select option {
+  font-size: 14px;
+} /* 메뉴도 작게 */
+
+/* 포커스 표시(연한 브랜드) */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid rgba(255, 131, 162, 0.35);
+  outline-offset: 2px;
+}
+
+/* 생년월일 3등분 */
+.dob,
+.row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+.dob .select {
+  min-width: 90px;
+}
+
+/* 에러 메시지 */
+.error {
+  min-height: 14px;
+  color: #ff4d4f;
+  font-size: 12px;
+  margin: -4px 0 0;
+}
+
+/* CTA 버튼 */
+.cta {
+  width: min(90%, var(--formw));
+  margin-top: 10px;
+  display: grid;
+  place-items: center;
+}
+.btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: #fff;
+  color: var(--text);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn.primary {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* tiny responsive tweak */
+@media (max-width: 360px) {
+  .content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+/* iOS 드롭다운 가독성 보정 */
+@supports (-webkit-touch-callout: none) {
+  select {
+    font-size: 15px;
+  }
+}
+
+/* 이전 has-value 같은 규칙 무력화 */
+.form .control select.has-value {
+  color: inherit;
+}
+
+/* 그룹 폭 도우미 */
+.form .group,
+.input,
+.select {
+  width: 100%;
+}

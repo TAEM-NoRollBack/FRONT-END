@@ -1,0 +1,224 @@
+:root {
+  --brand: #ff83a2;
+  --kakao: #fee500;
+  --text: #111;
+  --maxw: 393px;
+  --hdr: 81px;
+
+  /* ▶ 아이콘을 가운데 기준으로 오른쪽으로 얼마나 밀지 (px)
+     값만 바꾸면 미세조정 가능 */
+  --shop-nudge: 10px; /* +면 오른쪽, -면 왼쪽 */
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: #fff;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', system-ui,
+    Segoe UI, Roboto, Helvetica, Arial, 'Apple SD Gothic Neo', 'Malgun Gothic',
+    'Nanum Gothic', sans-serif;
+}
+
+.frame {
+  width: min(100%, var(--maxw));
+  min-height: 100svh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 상단바(네가 준 규격) */
+.topbar {
+  height: var(--hdr);
+  background: var(--brand);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+.topbar.nudged {
+  margin-top: -17px;
+}
+.status {
+  width: 100%;
+  height: 32px;
+  position: relative;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.status .time {
+  position: absolute;
+  left: 12px;
+  top: 6px;
+  color: #111;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.35);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.status .notch {
+  width: 110px;
+  height: 22px;
+  background: #111;
+  border-radius: 12px;
+}
+.status .icons {
+  position: absolute;
+  right: 12px;
+  top: 6px;
+  display: flex;
+  gap: 6px;
+}
+.status .sig,
+.status .wifi {
+  width: 16px;
+  height: 10px;
+  background: #111;
+  border-radius: 2px;
+}
+.status .bat {
+  width: 24px;
+  height: 12px;
+  border: 2px solid #111;
+  border-radius: 3px;
+  position: relative;
+}
+.status .bat i {
+  position: absolute;
+  inset: 2px;
+  background: #111;
+  border-radius: 1px;
+  display: block;
+}
+
+.content {
+  flex: 1;
+  padding: 24px 20px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 히어로 */
+.hero {
+  width: 100%;
+  position: relative;
+  min-height: 520px;
+}
+
+/* 시장 아이콘 위치/크기(규격 + flex-shrink:0) */
+.shop-svg {
+  position: absolute;
+  top: 190px;
+  left: 48%;
+  transform: translateX(calc(-50% + var(--shop-nudge)));
+  width: 190px;
+  height: 171px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.1));
+}
+.shop-svg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 타이틀/서브카피 */
+.brand {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 390px; /* 필요시 미세조정 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.title-svg,
+.subtitle-svg {
+  flex-shrink: 0;
+}
+.title-svg svg {
+  width: 160px;
+  height: 43px;
+}
+.subtitle-svg svg {
+  width: 175px;
+  height: 15px;
+}
+
+/* 버튼 */
+.cta {
+  width: 100%;
+  top: 100px;
+  margin-top: 28px;
+  display: grid;
+  gap: 14px;
+  place-items: center;
+}
+.btn {
+  width: 85%;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+  color: #111;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn.primary {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.btn.kakao {
+  background: var(--kakao);
+  border-color: #d9c400;
+  color: #181600;
+}
+
+/* 자잘한 반응형 */
+@media (max-width: 360px) {
+  .brand {
+    top: 408px;
+  }
+}
+
+/* 카카오 버튼 안에서 텍스트와 아이콘 간격 */
+.btn.kakao {
+  gap: 8px;
+}
+
+/* 아이콘 크기/수축 방지 */
+.btn.kakao .icon {
+  width: 21px;
+  height: 19.299px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* SVG가 .icon 크기를 그대로 따르도록 */
+.btn.kakao .icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 혹시 색을 CSS로 강제하고 싶다면(선택) */
+/* .btn.kakao .icon path { fill:#000; } */
