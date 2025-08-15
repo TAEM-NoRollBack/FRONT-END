@@ -1,0 +1,185 @@
+:root {
+  --brand: #ff83a2;
+  --kakao: #fee500;
+  --text: #111;
+  --maxw: 393px;
+  --hdr: 81px;
+
+  --formw: 360px;
+  --field-bg: #f4f4f4;
+  --radius: 12px;
+  --gap: 14px;
+  --field-gap: 10px;
+  --border: #e9e9e9;
+  --placeholder: #9aa0a6;
+}
+
+/* base */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: #fff;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', system-ui,
+    Segoe UI, Roboto, Helvetica, Arial, 'Apple SD Gothic Neo', 'Malgun Gothic',
+    'Nanum Gothic', sans-serif;
+}
+
+/* frame */
+.frame {
+  width: min(100%, var(--maxw));
+  min-height: 100svh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* topbar */
+.topbar {
+  height: var(--hdr);
+  background: var(--brand);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar.nudged { margin-top: -17px; }
+
+/* 기본 콘텐츠 패딩 */
+.content {
+  display: flex;
+  padding-top: calc(var(--hdr) + 12px);
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 공통 타이틀 */
+.title {
+  color: #000;
+  text-align: center;
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Noto Sans KR',
+    system-ui, Segoe UI, Roboto, Helvetica, Arial, 'Apple SD Gothic Neo',
+    'Malgun Gothic', 'Nanum Gothic', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 12px 0 8px;
+}
+
+/* 컨테이너 폭 통일 */
+.k-login, .form, .cta {
+  width: min(90%, var(--formw));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* form fields */
+.form { display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: var(--field-gap); }
+.field label { font-size: 13px; font-weight: 700; }
+.req { color: #ff4d4f; margin-left: 2px; }
+
+input[type='text'],
+input[type='email'],
+select {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 14px;
+  outline: none;
+}
+input::placeholder { color: var(--placeholder); }
+
+/* 고정 배경(F4F4F4) */
+.form .control input,
+.form .control textarea,
+.form .control select {
+  background: var(--field-bg) !important;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+/* iOS/크롬 select 보정 */
+.form .control select:-internal-list-box,
+.form .control select:-moz-focusring { background: var(--field-bg) !important; }
+.form .control input::placeholder,
+.form .control textarea::placeholder { opacity: 1; }
+.form .control select.has-value { color: inherit; }
+
+/* 커스텀 셀렉트 캐럿(재사용용) */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%239AA0A6' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px 8px;
+  padding-right: 36px;
+}
+
+/* errors */
+.error { min-height: 14px; color: #ff4d4f; font-size: 12px; margin: -4px 0 0; }
+
+/* CTA */
+.cta { width: 100%; margin-top: 8px; display: grid; place-items: center; }
+.btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+.cta .btn { width: 100%; }
+
+/* 반응형 미세조정 */
+@media (max-width: 360px) {
+  .content { padding-left: 16px; padding-right: 16px; }
+}
+
+/* ====== [onboarding2 전용 오버라이드] ====== */
+.page-edu {
+  padding-top: calc(var(--hdr) + 8px); /* 상단바 바로 아래 시작 */
+  align-items: center;
+}
+.page-edu .title {
+  width: min(90%, var(--formw));
+  margin: 6px auto 10px;
+  text-align: left;
+}
+
+/* ====== 커스텀 옵션 패널 ====== */
+.select-box { position: relative; }
+.options {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 10px);
+  width: 280px;
+  max-width: calc(100vw - 48px);
+  background: #ffe0ea;                 /* 연한 핑크 (이미지 느낌) */
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+  padding: 12px 10px;
+  z-index: 30;
+}
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.option input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand);           /* 라디오 색상 */
+}
+.option + .option { margin-top: 4px; }

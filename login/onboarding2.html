@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>학력 입력</title>
+    <link rel="stylesheet" href="./onboarding2.css" />
+  </head>
+  <body>
+    <div class="frame">
+      <!-- 상단바 -->
+      <header class="topbar" aria-hidden="true"></header>
+
+      <!-- 콘텐츠 -->
+      <main class="content page-edu" role="main">
+        <h1 class="title">학력 입력</h1>
+
+        <form id="eduForm" class="form" novalidate>
+          <!-- 학교 -->
+          <div class="field group">
+            <label for="school">학교 <span class="req">*</span></label>
+
+            <!-- 커스텀 선택 박스 -->
+            <div class="control select-box" id="schoolBox">
+              <input
+                id="school"
+                name="school"
+                type="text"
+                placeholder="학교를 선택해주세요."
+                autocomplete="organization"
+                readonly
+                required
+              />
+              <!-- 옵션 패널 -->
+              <div
+                class="options"
+                id="schoolOptions"
+                hidden
+                role="listbox"
+                aria-labelledby="school"
+              >
+                <label class="option">
+                  <input
+                    type="radio"
+                    name="schoolOpt"
+                    value="가천대학교 글로벌캠퍼스"
+                  />
+                  <span>가천대학교 글로벌캠퍼스</span>
+                </label>
+                <label class="option">
+                  <input type="radio" name="schoolOpt" value="동서울대학교" />
+                  <span>동서울대학교</span>
+                </label>
+                <label class="option">
+                  <input type="radio" name="schoolOpt" value="신구대학교" />
+                  <span>신구대학교</span>
+                </label>
+                <label class="option">
+                  <input
+                    type="radio"
+                    name="schoolOpt"
+                    value="을지대학교 성남캠퍼스"
+                  />
+                  <span>을지대학교 성남캠퍼스</span>
+                </label>
+              </div>
+            </div>
+            <p class="error" id="errSchool"></p>
+          </div>
+
+          <!-- 전공 -->
+          <div class="field group">
+            <label for="major">전공 <span class="req">*</span></label>
+            <div class="control">
+              <input
+                id="major"
+                name="major"
+                type="text"
+                placeholder="전공을 입력해주세요."
+                autocomplete="organization-title"
+                required
+              />
+            </div>
+            <p class="error" id="errMajor"></p>
+          </div>
+
+          <!-- CTA -->
+          <section class="cta">
+            <button id="btnNext" type="submit" class="btn primary" disabled>
+              회원가입
+            </button>
+          </section>
+        </form>
+      </main>
+    </div>
+
+    <script src="./onboarding2.js"></script>
+  </body>
+</html>
