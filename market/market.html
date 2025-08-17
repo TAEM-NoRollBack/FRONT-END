@@ -373,7 +373,30 @@
 
         <!-- 사진 2x2 -->
         <section class="photos card">
-          <h3>시장 사진</h3>
+          <h3 class="with-ico">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="17"
+              height="17"
+              viewBox="0 0 19 19"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M11.9286 14.3571L7.07143 9.5L1 15.5714V1H18V14.3571M9.5 11.9286L13.1429 8.28571L18 13.1429V18H1V14.3571"
+                stroke="#FF83A2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M5.85658 7.07132C6.86253 7.07132 7.67801 6.25584 7.67801 5.2499C7.67801 4.24395 6.86253 3.42847 5.85658 3.42847C4.85064 3.42847 4.03516 4.24395 4.03516 5.2499C4.03516 6.25584 4.85064 7.07132 5.85658 7.07132Z"
+                stroke="#FF83A2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span id="photoTitle">시장 사진</span>
+          </h3>
           <div class="grid4">
             <div class="ph" id="p1"></div>
             <div class="ph" id="p2"></div>
@@ -385,39 +408,94 @@
 
         <!-- 지도 -->
         <section class="map card">
-          <h3>위치 정보</h3>
+          <h3 class="with-ico">
+            <span class="hico">
+              <!-- 16x24, fill #FF83A2 -->
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="24"
+                viewBox="0 0 16 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M8 11.4C8.37521 11.4 8.74674 11.3224 9.09338 11.1716C9.44003 11.0209 9.755 10.7999 10.0203 10.5213C10.2856 10.2427 10.4961 9.91203 10.6397 9.54805C10.7832 9.18407 10.8571 8.79397 10.8571 8.4C10.8571 7.60435 10.5561 6.84129 10.0203 6.27868C9.48449 5.71607 8.75776 5.4 8 5.4C7.24224 5.4 6.51551 5.71607 5.9797 6.27868C5.44388 6.84129 5.14286 7.60435 5.14286 8.4C5.14286 8.79397 5.21676 9.18407 5.36034 9.54805C5.50393 9.91203 5.71439 10.2427 5.9797 10.5213C6.51551 11.0839 7.24224 11.4 8 11.4ZM8 0C12.4114 0 16 3.756 16 8.4C16 14.7 8 24 8 24C8 24 0 14.7 0 8.4C0 6.17218 0.842855 4.03561 2.34315 2.4603C3.84344 0.884997 5.87827 0 8 0Z"
+                  fill="#FF83A2"
+                />
+              </svg>
+            </span>
+            위치 정보
+          </h3>
+
           <div class="mapbox"><div class="map-preview"></div></div>
           <button class="cta" id="moreFoods">시장 음식 랭킹 더보기</button>
         </section>
 
         <!-- 방문자 리뷰 (샘플) -->
         <section class="reviews card">
-          <div class="row">
-            <h3>방문자 리뷰</h3>
-            <div class="rating">
-              <span id="r2">4.5</span> <span id="r2c">(0명)</span>
+          <div class="row r-top">
+            <h3 class="with-ico">
+              <span class="hico">
+                <!-- 22x21, fill #FF83A2 -->
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="22"
+                  height="21"
+                  viewBox="0 0 22 21"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M5.5 13.5439H7.2875C7.43417 13.5439 7.57643 13.5157 7.7143 13.4593C7.85217 13.4028 7.97573 13.3182 8.085 13.2053L13.255 7.90062C13.42 7.73132 13.5439 7.53832 13.6268 7.32162C13.7097 7.10491 13.7507 6.89348 13.75 6.68731C13.7493 6.48114 13.7034 6.27911 13.6125 6.08122C13.5216 5.88333 13.4024 5.69973 13.255 5.53043L12.265 4.45821C12.1 4.28891 11.9167 4.16212 11.715 4.07785C11.5133 3.99357 11.3025 3.95106 11.0825 3.95031C10.8808 3.95031 10.6748 3.99282 10.4643 4.07785C10.2538 4.16287 10.0657 4.28966 9.9 4.45821L4.73 9.76291C4.62 9.87577 4.5375 10.0029 4.4825 10.1444C4.4275 10.2859 4.4 10.4314 4.4 10.5812V12.4153C4.4 12.735 4.5056 13.0033 4.7168 13.22C4.928 13.4367 5.18907 13.5447 5.5 13.5439ZM10.0925 13.5439H16.5C16.8117 13.5439 17.0731 13.4356 17.2843 13.2189C17.4955 13.0022 17.6007 12.7343 17.6 12.4153C17.5993 12.0962 17.4937 11.8284 17.2832 11.6117C17.0727 11.3949 16.8117 11.2866 16.5 11.2866H12.2925L10.0925 13.5439ZM4.4 18.0586L1.87 20.6545C1.52167 21.0119 1.12273 21.092 0.673202 20.8949C0.223668 20.6977 -0.000731542 20.3448 1.79153e-06 19.8362V2.25732C1.79153e-06 1.63656 0.215602 1.10533 0.646802 0.663652C1.078 0.22197 1.59573 0.00075244 2.2 0H19.8C20.405 0 20.9231 0.221217 21.3543 0.663652C21.7855 1.10609 22.0007 1.63731 22 2.25732V15.8012C22 16.422 21.7848 16.9536 21.3543 17.396C20.9238 17.8385 20.4057 18.0593 19.8 18.0586H4.4ZM3.465 15.8012H19.8V2.25732H2.2V17.071L3.465 15.8012Z"
+                    fill="#FF83A2"
+                  />
+                </svg>
+              </span>
+              방문자 리뷰
+            </h3>
+
+            <!-- ⭐ 평균 / 개수 -->
+            <div class="rating2">
+              <div
+                class="stars sm"
+                id="stars2"
+                style="--rate: 0"
+                aria-hidden="true"
+              >
+                <div class="row stars-bg"></div>
+                <div class="row stars-fill"></div>
+              </div>
+              <b id="r2">0.0</b>
+              <span id="r2c">리뷰 0개</span>
             </div>
           </div>
 
-          <article class="review">
-            <div class="head">
-              <div class="avatar">😀</div>
-              <div class="meta">
-                <b>양풍군2</b>
-                <span class="date">2025.04.23</span>
-              </div>
-            </div>
-            <div class="pics3">
-              <div class="ph"></div>
-              <div class="ph"></div>
-              <div class="ph more">+2</div>
-            </div>
-            <p class="text">
-              진심보태서… 만족스러웠습니다! 전통시장 특유의 활기…
-            </p>
-          </article>
+          <!-- 사진 릴(최신 업로드) -->
+          <div class="ugc-reel" id="ugcReel"></div>
+
+          <!-- 밑줄 구분 -->
+          <div class="hairline"></div>
+
+          <!-- 정렬 토글 -->
+          <div class="filters" role="tablist">
+            <button class="chip on" data-sort="recommended">추천순</button>
+            <button class="chip" data-sort="new">최신순</button>
+            <button class="chip" data-sort="high">평점 높은 순</button>
+            <button class="chip" data-sort="low">평점 낮은 순</button>
+          </div>
+
+          <!-- 리뷰 리스트 -->
+          <div id="reviewsList"></div>
         </section>
       </main>
+      <div id="photoModal" class="modal hidden" aria-hidden="true">
+        <div class="modal-bg" data-close="1"></div>
+        <div class="modal-body">
+          <button class="modal-close" data-close="1">닫기</button>
+          <div class="modal-grid" id="modalGrid"></div>
+        </div>
+      </div>
     </div>
 
     <script src="./market.js"></script>
