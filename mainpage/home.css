@@ -5,8 +5,12 @@
   --hdr:81px;
   --radius:12px;
   --border:#ececec;
+  --pin-left: -3px;    /* 핀이 배지 밖으로 나가는 정도(좌측) */
+  --pin-top:  -12px;     /* 핀이 배지 위로 뜨는 정도(상단) */
   --muted:#9aa0a6;
   --chip:#f6f6f6;
+  --pin-overlap: 10px;   /* 8~12px에서 취향대로 */
+  --label-pad-left: 16px;
 }
 
 /* 베이스 */
@@ -107,7 +111,21 @@ body{
 }
 .shop-badges .pbadge { color:#111; }
 /* 지도 추천 */
-.map-reco{width:min(92%,360px);margin:0 auto}
+/* 지도 박스가 높이가 있어야 렌더됨 */
+.map-reco .mapbox{
+  width: min(100%, 393px);
+  height: 227px;
+  aspect-ratio: 116 / 67;  /* 넓이 바뀌어도 비율 유지 */
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  position: relative;
+  background: #fafafa;
+}
+.map-reco .mapbox > .map{ position:absolute; inset:0; }
+.map-reco .mapbox .map-preview{ display:none; } 
+.map-reco .mapbox { width:393px; height:227px; aspect-ratio:116/67; }
+
 .mapbox{height:170px;border-radius:12px;border:1px solid var(--border);overflow:hidden;position:relative;background:#fafafa}
 .map-preview{
   position:absolute; inset:0;
@@ -170,6 +188,14 @@ body{
   display:inline-flex; align-items:center; justify-content:center;
   font-size:11px; line-height:1; white-space:nowrap;
   color:#FF83A2;
+}
+.map-label .pin{
+  position: absolute;
+  left: var(--pin-left);
+  top:  var(--pin-top);
+  width:19px; height:28px;
+  z-index: 2;                           /* 핀이 배지보다 위 */
+  pointer-events: none;                 /* 클릭은 전체 a로 전달 */
 }
 
 /* 위치 아이콘이 필요한 배지에만 .pin 사용 */
@@ -278,3 +304,47 @@ body{
   content: none !important;
   display: none !important;
 }
+/* === 지도 라벨(시장/맛집) 공통 === */
+.map-label{
+  position: relative;
+  display: inline-block;
+  margin-left: -9.5px;                 /* 19px / 2 */
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.12));
+  text-decoration: none;
+  user-select: none;
+}
+.map-label .dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #FF83A2;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #FF83A2 inset;
+}
+.map-label .badge{
+  position: relative;                   /* 핀 absolute 기준 */
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  min-width: 59px;                      /* 기본 너비, 내용 늘면 자동 확장 */
+  padding: 0 10px;                      /* 좌/우 여백 */
+  border-radius: 14.5px;
+  border: 1px solid #FF83A2;
+  background: #FFF;
+  box-shadow: 0 1px 2px rgba(0,0,0,.25);
+  white-space: nowrap;
+}
+
+.map-label.market .badge { font-weight: 700; } /* 시장은 살짝 강조 */
+.map-label .badge { background:#fff7f9; color:#000;}
+
+.map-label .dot{ display:none !important; }
+
+/* (선택) 점수 뱃지 */
+.map-label .score {
+  margin-left: 2px;
+  font-size: 11px;
+  color:#333;
+}
+
+/* 라벨 클릭 영역이 충분히 잡히도록 */
+.kakao_map_custom_overlay { pointer-events: auto; }

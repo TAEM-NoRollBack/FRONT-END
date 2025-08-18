@@ -1,3 +1,4 @@
+const SHOP_URL   = '../market/market.html';
 // 학교명 동기화 (로컬스토리지에 저장돼 있다면 사용)
 (function syncSchool() {
   const labelEl = document.getElementById('schoolLabel');
@@ -204,3 +205,193 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     });
 });
+(function () {
+  // === 경로 상수(홈이 /mainpage 안에 있으므로 market 폴더는 한 단계 위) ===
+  const MARKET_URL = '../market/market.html';
+  const FOODS_URL  = '../market/market.html';
+
+  // === 0) 오류 메시지 유틸 ===
+  function showMapError(msg) {
+    const box = document.getElementById('mapBox');
+    if (!box) return;
+    const div = document.createElement('div');
+    div.style.cssText = `
+      position:absolute; inset:0; display:grid; place-items:center;
+      background:#fff; color:#d00; font-size:12px; text-align:center; padding:10px;
+    `;
+    div.innerHTML = msg;
+    box.appendChild(div);
+  }
+
+  // === 1) 카카오 SDK 로더 ===
+  const KAKAO_JS_KEY =
+  localStorage.getItem('kakao.appkey') || 'e771162067cb5bea30a5efc4c5a69160';
+  const SDK =
+  `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(KAKAO_JS_KEY)}&autoload=false`;
+
+  function loadKakao() {
+    return new Promise((res, rej) => {
+      if (window.kakao?.maps) return res();
+  
+      const s = document.createElement('script');
+      s.src = SDK;
+      s.async = true;
+  
+      // ★ 이벤트 객체 그대로 던지지 말고 명확한 에러로
+      s.onerror = () => rej(new Error('SDK_LOAD_FAILED'));
+  
+      s.onload = () => {
+        try {
+          kakao.maps.load(res);
+        } catch (e) {
+          rej(e);
+        }
+      };
+  
+      document.head.appendChild(s);
+    });
+  }
+
+  const LL = (lat, lng) => new kakao.maps.LatLng(lat, lng);
+  function fitBounds(map, coords) {
+    if (!coords?.length) return;
+    const b = new kakao.maps.LatLngBounds();
+    coords.forEach(c => b.extend(LL(c.lat, c.lng)));
+    map.setBounds(b, 20, 20, 20, 20);
+  }
+
+  // === 2) 학교값 읽기(둘 다 지원: onboarding.school | schoolName) ===
+  function getSavedSchoolRaw() {
+    const a = localStorage.getItem('onboarding.school');
+    const b = localStorage.getItem('schoolName');
+    const v = a || b;
+    if (!v) return null;
+    try { return JSON.parse(v); } catch { return v; } // 문자열/JSON 모두 대응
+  }
+
+  // === 3) 학교 → 좌표 매핑(필요 시 추가) ===
+  function resolveSchool(s) {
+    const list = [
+      { id: 'eulji',  name: '을지대',    lat: 37.4597, lng: 127.1652 },
+      { id: 'gachon', name: '가천대학교', lat: 37.4523, lng: 127.1290 },
+      { id: 'seongnam', name:'성남시청',  lat: 37.4200, lng: 127.1265 },
+    ];
+    if (!s) return list[0];
+    const key = String(s).trim();
+    return (
+      list.find(x => x.id === key || x.name === key) ||
+      list.find(x => key.includes(x.name)) ||
+      list[0]
+    );
+  }
+
+  // === 4) 데모 데이터(나중엔 API로 교체) ===
+  const MARKETS = [
+    { id: 'sinhung', name: '신흥시장', lat: 37.4419, lng: 127.1295 },
+    { id: 'moran',   name: '모란시장', lat: 37.4328, lng: 127.1290 },
+  ];
+  const PLACES = [
+    { id:'p1', market_id:'sinhung', name:'진선보쌈',           lat:37.4426, lng:127.1303, rating:4.5 },
+    { id:'p2', market_id:'sinhung', name:'한촌설렁탕 성남점',   lat:37.4413, lng:127.1269, rating:4.2 },
+    { id:'p3', market_id:'moran',   name:'칼국수집',           lat:37.4335, lng:127.1276, rating:4.6 },
+  ];
+
+  // === 5) 부트스트랩 ===
+  document.addEventListener('DOMContentLoaded', async () => {
+    const box = document.getElementById('mapBox');
+    if (!box) return;
+
+    // 지도 DOM
+    box.querySelector('.map-preview')?.remove();
+    const mapDiv = document.createElement('div');
+    mapDiv.className = 'map';
+    box.appendChild(mapDiv);
+
+    // SDK 로딩
+    try {
+      await loadKakao();
+    } catch (e) {
+      // 네가 만든 showMapError 같은 함수에 메시지 넘겨
+      showMapError(`카카오 SDK 로드 실패: ${e.message}`);
+      return;
+    }
+
+    // 중심 = 학교
+    const school = resolveSchool(getSavedSchoolRaw());
+    const center = { lat: school.lat, lng: school.lng };
+
+    // 지도 생성
+    const map = new kakao.maps.Map(mapDiv, {
+      center: LL(center.lat, center.lng),
+      level: 4,
+    });
+    function addLabelOverlay({ lat, lng, href, name, kind = 'place' }) {
+      // 라벨 DOM 구성: [SVG 핀] [배지(텍스트)]
+      const a = document.createElement('a');
+      a.className = `map-label ${kind === 'market' ? 'market' : 'place'}`;
+      a.href = href;
+    
+      a.innerHTML = `
+        <svg class="pin" xmlns="http://www.w3.org/2000/svg" width="19" height="28" viewBox="0 0 19 28" aria-hidden="true">
+          <path d="M9.5 13.3C9.94556 13.3 10.3868 13.2095 10.7984 13.0336C11.21 12.8577 11.5841 12.5999 11.8991 12.2749C12.2142 11.9499 12.4641 11.564 12.6346 11.1394C12.8051 10.7148 12.8929 10.2596 12.8929 9.8C12.8929 8.87174 12.5354 7.9815 11.8991 7.32513C11.2628 6.66875 10.3998 6.3 9.5 6.3C8.60016 6.3 7.73717 6.66875 7.10089 7.32513C6.4646 7.9815 6.10714 8.87174 6.10714 9.8C6.10714 10.2596 6.1949 10.7148 6.36541 11.1394C6.53591 11.564 6.78583 11.9499 7.10089 12.2749C7.73717 12.9313 8.60016 13.3 9.5 13.3ZM9.5 0C14.7386 0 19 4.382 19 9.8C19 17.15 9.5 28 9.5 28C9.5 28 0 17.15 0 9.8C0 7.20088 1.00089 4.70821 2.78249 2.87035C4.56408 1.0325 6.98044 0 9.5 0Z" fill="#FF83A2"/>
+        </svg>
+        <span class="badge">${name}</span>
+      `;
+    
+      // Kakao CustomOverlay
+      const ov = new kakao.maps.CustomOverlay({
+        position: new kakao.maps.LatLng(lat, lng),
+        content: a,              // DOM 노드 그대로 사용
+        yAnchor: 1,              // 좌표 = 요소의 ‘아래쪽’ (핀 꼭지점)
+        xAnchor: 0,              // 좌표 = 요소의 ‘왼쪽’ 기준
+        clickable: true,
+        zIndex: kind === 'market' ? 3 : 2,
+      });
+    
+      ov.setMap(map);
+      return ov;
+    }
+  
+    // 마커들
+    const coords = [];
+    // 시장
+    MARKETS.forEach(m => {
+      const marker = new kakao.maps.Marker({ map, position: LL(m.lat, m.lng) });
+      const iw = new kakao.maps.InfoWindow({
+        content: `<div style="padding:4px 6px;font-size:12px">${m.name}</div>`
+      });
+      kakao.maps.event.addListener(marker, 'mouseover', () => iw.open(map, marker));
+      kakao.maps.event.addListener(marker, 'mouseout',  () => iw.close());
+      kakao.maps.event.addListener(marker, 'click',     () => {
+        location.href = `${MARKET_URL}?id=${m.id}`;
+      });
+      coords.push({ lat: m.lat, lng: m.lng });
+    });
+
+    // 맛집(시장 상세/랭킹으로)
+    PLACES.forEach(p => {
+      addLabelOverlay({
+        lat: p.lat, lng: p.lng,
+        href: `${SHOP_URL}?id=${p.id}`,
+        name: p.name,
+        rating: p.rating,
+        kind: 'place',
+      });
+      coords.push({ lat: p.lat, lng: p.lng });
+    });
+
+    fitBounds(map, coords.length ? coords : [center]);
+  });
+})();
+// home.js의 kakao.maps.Map 생성 직후에
+Object.assign(locBtn.style, {position:'absolute',right:'8px',top:'8px',zIndex:5});
+document.getElementById('mapBox').appendChild(locBtn);
+
+locBtn.onclick = () => {
+  if (!navigator.geolocation) return alert('GPS를 지원하지 않아요');
+  navigator.geolocation.getCurrentPosition(({coords}) => {
+    const here = new kakao.maps.LatLng(coords.latitude, coords.longitude);
+    map.setCenter(here);
+    new kakao.maps.Marker({ map, position: here });
+  }, () => alert('현재 위치를 가져오지 못했어요.'));
+};

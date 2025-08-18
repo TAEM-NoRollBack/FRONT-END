@@ -1,4 +1,4 @@
-// onboarding/js/profile.js
+// onboarding/js/profile.js (FINAL)
 (() => {
   const $ = (sel, root = document) => root.querySelector(sel);
 
@@ -12,7 +12,10 @@
   const daySel = $('#birthDay');
   const btnNext = $('#btnNext');
 
-  // ---------- Prefill (예: 소셜 로그인 정보가 로컬스토리지에 있을 때) ----------
+  const NEXT_PAGE = './onboarding2.html'; // ✅ 다음 스텝
+  const API_URL = '/api/onboarding/profile'; // 백엔드 붙이면 여기만 맞춰
+
+  // 소셜 프리필(있으면)
   try {
     const prefill = JSON.parse(localStorage.getItem('oauth_profile') || '{}');
     if (prefill.name) nameInput.value = prefill.name;
@@ -20,11 +23,11 @@
     if (prefill.nickname) nickInput.value = prefill.nickname;
   } catch (_) {}
 
-  // ---------- DOB 옵션 채우기 ----------
+  // DOB 옵션 채우기
   const now = new Date();
   const THIS_YEAR = now.getFullYear();
-  const startYear = THIS_YEAR - 80; // 80년 전부터
-  const endYear = THIS_YEAR - 13; // 만 13세 이상
+  const startYear = THIS_YEAR - 80;
+  const endYear = THIS_YEAR - 13;
 
   function fillYears() {
     yearSel.innerHTML = `<option value="" hidden selected>YYYY</option>`;
@@ -61,7 +64,6 @@
       opt.textContent = v;
       daySel.appendChild(opt);
     }
-    // keep previous day if still valid
     if (prev && Number(prev) <= max) daySel.value = prev.padStart(2, '0');
   }
 
@@ -72,7 +74,7 @@
   fillMonths();
   fillDays();
 
-  // ---------- 간단 검증 ----------
+  // 검증
   const errs = {
     name: $('#err-name'),
     nickname: $('#err-nickname'),
@@ -116,7 +118,7 @@
     return ok;
   }
 
-  // ---------- 제출 ----------
+  // 제출
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -127,33 +129,39 @@
       email: emailInput.value.trim(),
       gender: genderSelect.value, // 'male' | 'female' | 'none'
       birthDate: `${yearSel.value}-${monthSel.value}-${daySel.value}`, // YYYY-MM-DD
-      provider: 'kakao', // 현재 화면 기준
+      provider: 'kakao',
     };
 
     btnNext.disabled = true;
 
+    // 프론트-온리 백업 저장(다음 페이지에서 써먹게)
+    try { localStorage.setItem('onboarding_profile', JSON.stringify(payload)); } catch (_) {}
+
     try {
-      // 👉 백엔드 엔드포인트에 맞춰 경로만 바꾸면 됩니다.
-      const res = await fetch('/api/onboarding/profile', {
+      // 백엔드가 준비돼 있으면 저장 시도
+      const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        credentials: 'include', // 세션/쿠키 사용 시
+        credentials: 'include',
       });
 
-      if (!res.ok) {
-        const msg = await res.text().catch(() => '');
-        throw new Error(msg || '저장 중 오류가 발생했습니다.');
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.userId) localStorage.setItem('userId', data.userId);
+        window.location.href = NEXT_PAGE; // ✅ 성공 → 다음 스텝
+        return;
+      } else {
+        // 실패해도 남 탓하지 말고 그냥 간다. MOOD.
+        console.warn('Profile save failed:', await res.text().catch(() => ''));
+        window.location.href = NEXT_PAGE;       // ✅ 실패 → 로컬 저장만 믿고 진행
+        return;
       }
-
-      // 저장 성공 → 다음 스텝(학교/학과 선택)으로 이동
-      // 필요하면 서버에서 반환한 userId를 보관
-      const data = await res.json().catch(() => ({}));
-      if (data.userId) localStorage.setItem('userId', data.userId);
-
-      window.location.href = './school.html';
     } catch (err) {
-      alert(err.message || '네트워크 오류가 발생했습니다.');
+      // 네트워크 터져도 진행
+      console.warn('Network error on profile save:', err);
+      window.location.href = NEXT_PAGE;         // ✅ 예외 → 진행
+      return;
     } finally {
       btnNext.disabled = false;
     }

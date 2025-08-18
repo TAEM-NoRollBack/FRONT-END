@@ -178,8 +178,10 @@
         </section>
 
         <section class="cta">
+          <!-- SDK & 앱 스크립트 -->
+
           <button id="btnSignup" class="btn primary">회원가입</button>
-          <button id="btnKakao" class="btn kakao">
+          <button id="kakao-login-btn" type="button" class="btn kakao">
             <span class="icon" aria-hidden="true">
               <!-- SVG 그대로 -->
               <svg
@@ -197,10 +199,14 @@
             </span>
             카카오로 로그인
           </button>
+          <button id="btnLogout" class="btn" style="display: none">
+            로그아웃
+          </button>
         </section>
       </main>
     </div>
-
-    <script src="./login.js" defer></script>
+    <script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
+    <script defer src="./login.js"></script>
   </body>
 </html>
+<!-- SDK 먼저, 내 스크립트는 defer -->

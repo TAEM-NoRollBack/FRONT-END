@@ -222,3 +222,11 @@ body {
 
 /* 혹시 색을 CSS로 강제하고 싶다면(선택) */
 /* .btn.kakao .icon path { fill:#000; } */
+.btn-kakao{
+  width:100%; height:44px; border:0; border-radius:8px;
+  background:#FEE500; color:#191919; font-weight:700; cursor:pointer;
+}
+.btn-ghost{
+  width:100%; height:40px; border:1px solid #ddd; border-radius:8px;
+  background:#fff; color:#333; margin-top:8px; cursor:pointer;
+}
