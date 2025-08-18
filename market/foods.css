@@ -1,0 +1,30 @@
+:root{
+  --brand:#ff83a2; --text:#111; --muted:#9aa0a6; --border:#ececec;
+  --maxw:393px; --cap-h:81px; --detail-h:56px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',system-ui;color:var(--text);background:#fff}
+.frame{width:min(100%,var(--maxw));margin:0 auto;background:#fff}
+.header-stack{top:0;z-index:30}
+.brand-cap{height:var(--cap-h);background:var(--brand);border-radius:0 0 10px 10px}
+.detail-topbar{display:flex;align-items:center;gap:8px;height:var(--detail-h);padding:0 12px;background:#fff;border-bottom:1px solid var(--border)}
+.detail-topbar .btn-back{border:0;background:transparent;padding:6px;cursor:pointer}
+.detail-topbar h1{font-size:16px;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.foods{display:flex;flex-direction:column}
+.list{display:flex;flex-direction:column}
+.item{padding:12px;border-top:8px solid #f7f7f7}
+.item:first-child{border-top:0}
+.row-top{display:flex;align-items:center;justify-content:space-between}
+.name{font-weight:700;font-size:16px}
+.rate{display:inline-flex;align-items:center;gap:6px;color:#000;font-weight:700}
+.rate .cnt{color:#000;font-weight:600}
+.rate svg{display:block}
+.chips{display:flex;gap:6px;margin:8px 0}
+.chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:999px;border:1px solid #e3e3e6;background:#fff;color:#333;font-size:12px}
+.chip .dot{width:6px;height:6px;border-radius:50%}
+.chip.open .dot{background:#16a34a}
+.chip.closed .dot{background:#ef4444}
+.imgs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.ph{background:#eee;border:1px solid #e5e5e5;border-radius:10px;background-size:cover;background-position:center;aspect-ratio:16/10}
+.q{margin:0;color:#333;line-height:1.5;font-size:13px}
+.hairline{height:1px;background:#e9e9e9;margin:10px -12px 0}

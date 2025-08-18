@@ -1,0 +1,19 @@
+:root {
+  --brand: #ff83a2;
+  --text: #111;
+  --border: #ececec;
+  --maxw: 393px;
+  --detail-h: 56px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', system-ui; color: var(--text); background: #fff; }
+.frame { width: min(100%, var(--maxw)); margin: 0 auto; background: #fff; }
+.header-stack { top: 0; z-index: 30; }
+.brand-cap { height: 81px; background: var(--brand); border-radius: 0 0 10px 10px; width: 100%; }
+.detail-topbar { display: flex; align-items: center; gap: 8px; height: var(--detail-h); padding: 0 12px; background: #fff; border-bottom: 1px solid var(--border); }
+.detail-topbar .btn-back { border: 0; background: transparent; padding: 6px; cursor: pointer; }
+.detail-topbar h1 { font-size: 16px; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card { border-top: 8px solid #f7f7f7; padding: 12px; }
+.photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.photo-grid .ph { background: #eee; border: 1px solid #e5e5e5; border-radius: 10px; background-size: cover; background-position: center; aspect-ratio: 1 / 1; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }

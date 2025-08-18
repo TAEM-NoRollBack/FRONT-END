@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>시장 사진</title>
+    <link rel="stylesheet" href="./photo.css" />
+  </head>
+  <body>
+    <div class="frame">
+      <div class="header-stack">
+        <div class="brand-cap" aria-hidden="true"></div>
+        <header class="detail-topbar">
+          <button class="btn-back" aria-label="뒤로가기">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+              <path d="M15 4 7 12l8 8" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <h1 id="title">(시장명)의 사진</h1>
+        </header>
+      </div>
+      <main class="photos-page">
+        <section class="photo-section card">
+          <h2 id="gridTitle" class="sr-only">사진 목록</h2>
+          <div id="photoGrid" class="photo-grid"></div>
+        </section>
+      </main>
+    </div>
+    <script src="./photo.js"></script>
+  </body>
+</html>
