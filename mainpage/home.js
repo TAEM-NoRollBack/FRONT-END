@@ -1,30 +1,94 @@
-const SHOP_URL   = '../market/market.html';
-// 학교명 동기화 (로컬스토리지에 저장돼 있다면 사용)
-(function syncSchool() {
+/* === 경로 & 상수 === */
+const SHOP_URL = '../market/market.html';
+const MARKET_URL = '../market/market.html';
+const STORAGE_KEY = 'nearbyRestaurants';
+
+const MARKET_CATALOG = [
+  { id: 'sinhung', name: '신흥시장', lat: 37.4419, lng: 127.1295 },
+  { id: 'moran', name: '모란시장', lat: 37.4328, lng: 127.129 },
+  { id: 'geumgwang', name: '금광시장', lat: 37.449601, lng: 127.159294 },
+];
+
+/* === 거리/최근접 시장 유틸 === */
+function pack(data) {
+  try {
+    return btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  } catch {
+    return '';
+  }
+}
+function haversineMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371000,
+    toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1),
+    dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+function fmtMeters(m) {
+  return m >= 1000
+    ? (m / 1000).toFixed(m < 10000 ? 1 : 0) + 'km'
+    : Math.round(m) + 'm';
+}
+function nearestMarketFor(lat, lng) {
+  let best = null;
+  for (const m of MARKET_CATALOG) {
+    const dist = haversineMeters(lat, lng, m.lat, m.lng);
+    if (!best || dist < best.dist) best = { ...m, dist };
+  }
+  return best; // { id, name, lat, lng, dist }
+}
+
+/* === 상세 페이지 링크 빌더 === */
+function buildDetailHref(r) {
+  // 가게의 필수 정보(이름, 평점 등)를 객체로 묶습니다.
+  const placeData = {
+    name: r.name,
+    rating: r.rating,
+    ratingCount: r.ratingCnt,
+    addr: r.addr,
+    photos: r.photos,
+  };
+
+  // 가게가 속한 가장 가까운 시장을 찾습니다.
+  const nearest =
+    typeof r.lat === 'number' && typeof r.lng === 'number'
+      ? nearestMarketFor(r.lat, r.lng)
+      : { id: 'sinhung' }; // 좌표 없으면 기본 시장
+
+  const u = new URL(MARKET_URL, location.href);
+  u.searchParams.set('place', r.id); // 가게 ID를 'place' 파라미터로 전달
+  u.searchParams.set('market', nearest.id); // 소속 시장 ID 전달
+  u.searchParams.set('px', pack(placeData)); // 가게 정보를 압축하여 'px' 파라미터로 전달
+
+  return u.toString();
+}
+
+/* === 라벨/타이틀 동기화 === */
+(function syncSchoolLabel() {
   const labelEl = document.getElementById('schoolLabel');
   const nearbyTitle = document.getElementById('nearbyTitle');
-  const school = localStorage.getItem('schoolName') || '을지대';
-  if (labelEl) labelEl.textContent = school;
-  if (nearbyTitle) nearbyTitle.textContent = `${school} 주변 맛집`;
+  const saved = getSavedSchool(); // {id,name}
+  if (labelEl) labelEl.textContent = saved.name || '을지대';
+  if (nearbyTitle)
+    nearbyTitle.textContent = `${saved.name || '을지대'} 주변 맛집`;
 })();
 
-// 검색 버튼(데모)
+/* === 검색 & 칩(데모) === */
 document.querySelector('.btn-search')?.addEventListener('click', () => {
   const q = document.getElementById('q')?.value.trim();
   if (!q) return;
   alert(`'${q}' 검색 준비 중입니다 (백엔드 연동 예정).`);
 });
-
-// 칩 클릭(데모)
-document.querySelectorAll('.chip').forEach(ch =>
+document.querySelectorAll('.chip').forEach((ch) =>
   ch.addEventListener('click', () => {
     alert(`필터 '${ch.textContent.trim()}' 적용 (백엔드 연동 예정)`);
   })
 );
-// ----- 간단한 “프론트 전용 저장소” -----
-const STORAGE_KEY = 'nearbyRestaurants';
 
-// 초기 데이터(예시). 최초 1회 저장 후에는 localStorage 값을 사용.
+/* === 프론트 저장용 샘플 데이터 === */
 const initialRestaurants = [
   {
     id: 'r1',
@@ -33,8 +97,16 @@ const initialRestaurants = [
     name: '김치찜의 정석',
     rating: 4.5,
     ratingCnt: 23,
-    badges: [],                        // ['한식 • 중식','도보 6분'] 처럼 넣어도 됨
+    badges: [],
     desc: '김치찌개가 진하고 깔끔해요. 가까운 시장에서 매일 아침 재료를 공수!',
+    // ✅ 좌표 (예: 금광시장 쪽)
+    lat: 37.4502,
+    lng: 127.1599,
+    // 선택: 사진이 있으면 두 장까지 갤러리에 표시
+    photos: [
+      'https://picsum.photos/seed/h1/600/400',
+      'https://picsum.photos/seed/h2/600/400',
+    ],
   },
   {
     id: 'r2',
@@ -45,6 +117,13 @@ const initialRestaurants = [
     ratingCnt: 23,
     badges: ['한식 • 중식', '도보 6분'],
     desc: '얼얼한 맛이 매력! 캠퍼스에서 도보 6분.',
+    // ✅ 좌표 (예: 신흥시장 쪽)
+    lat: 37.4422,
+    lng: 127.1301,
+    photos: [
+      'https://picsum.photos/seed/h3/600/400',
+      'https://picsum.photos/seed/h4/600/400',
+    ],
   },
 ];
 
@@ -60,16 +139,14 @@ function loadRestaurants() {
     return [...initialRestaurants];
   }
 }
-
 function saveRestaurants(list) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
 
-// ----- DOM 유틸 -----
+/* === DOM 유틸 === */
 const $list = document.getElementById('nearbyList');
 
 function createStarSvg() {
-  // <svg>를 DOM으로 생성 (innerHTML로 넣어도 되지만 DOM 방식이 안전)
   const svgNS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(svgNS, 'svg');
   svg.setAttribute('width', '16');
@@ -88,18 +165,22 @@ function createStarSvg() {
   return svg;
 }
 
+/* === 카드 생성 === */
 function createCard(r) {
   const $article = document.createElement('article');
-  $article.className = 'card';
+  $article.className = 'card clickable';
+  $article.tabIndex = 0;
+  $article.setAttribute('role', 'button');
 
-  // header
   const $header = document.createElement('header');
   $header.className = 'card-h';
 
   const $rowLeft = document.createElement('div');
   $rowLeft.className = 'row-left';
   $rowLeft.innerHTML = `
-    <span class="cat"><span class="emoji">${r.emoji || '🍽️'}</span> ${r.category || '추천 맛집'}</span>
+    <span class="cat"><span class="emoji">${r.emoji || '🍽️'}</span> ${
+    r.category || '추천 맛집'
+  }</span>
     <span class="name">${r.name}</span>
   `;
 
@@ -116,9 +197,10 @@ function createCard(r) {
   $header.appendChild($rating);
   $article.appendChild($header);
 
-  // 배지(있으면)
+  // 배지 묶음
+  let $badges = null;
   if (r.badges && r.badges.length) {
-    const $badges = document.createElement('div');
+    $badges = document.createElement('div');
     $badges.className = 'shop-badges';
     r.badges.forEach((b) => {
       const $b = document.createElement('span');
@@ -129,18 +211,38 @@ function createCard(r) {
     $article.appendChild($badges);
   }
 
-  // 사진 영역(플레이스홀더 2개)
+  // ✅ 가까운 시장 칩(거리 포함)
+  if (typeof r.lat === 'number' && typeof r.lng === 'number') {
+    const near = nearestMarketFor(r.lat, r.lng);
+    if (near) {
+      if (!$badges) {
+        $badges = document.createElement('div');
+        $badges.className = 'shop-badges';
+        $article.appendChild($badges);
+      }
+      const $near = document.createElement('span');
+      $near.className = 'pbadge';
+      $near.textContent = `가까운 시장: ${near.name} · ${fmtMeters(near.dist)}`;
+      $badges.appendChild($near);
+    }
+  }
+
+  // 갤러리(선택)
   const $gallery = document.createElement('div');
   $gallery.className = 'gallery';
   const $ph1 = document.createElement('div');
   const $ph2 = document.createElement('div');
   $ph1.className = 'ph';
   $ph2.className = 'ph';
+  // 사진이 있으면 표시
+  if (Array.isArray(r.photos) && r.photos[0])
+    $ph1.style.backgroundImage = `url('${r.photos[0]}')`;
+  if (Array.isArray(r.photos) && r.photos[1])
+    $ph2.style.backgroundImage = `url('${r.photos[1]}')`;
   $gallery.appendChild($ph1);
   $gallery.appendChild($ph2);
   $article.appendChild($gallery);
 
-  // 설명(있으면)
   if (r.desc) {
     const $desc = document.createElement('p');
     $desc.className = 'desc';
@@ -148,22 +250,38 @@ function createCard(r) {
     $article.appendChild($desc);
   }
 
+  // ✅ 상세 페이지 이동 연결
+  const href = buildDetailHref(r);
+  if (href) {
+    $article.dataset.href = href;
+    $article.setAttribute('aria-label', `${r.name} 상세로 이동`);
+    const open = () => (location.href = href);
+    $article.addEventListener('click', open);
+    $article.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        open();
+      }
+    });
+  } else {
+    $article.addEventListener('click', () =>
+      alert('이 카드에는 아직 연결된 상세 페이지가 없어요.')
+    );
+  }
+
   return $article;
 }
 
 let restaurants = loadRestaurants();
-
 function renderRestaurants() {
   const frag = document.createDocumentFragment();
   restaurants.forEach((r) => frag.appendChild(createCard(r)));
   $list.innerHTML = '';
   $list.appendChild(frag);
 }
-
-// 페이지 진입 시 렌더
 renderRestaurants();
 
-// ----- 전역 API: 콘솔/임시 버튼으로 추가할 수 있게 열어두기 -----
+/* === 외부에서 추가/리셋용 === */
 window.addRestaurant = function addRestaurant(newItem) {
   const item = {
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
@@ -174,28 +292,25 @@ window.addRestaurant = function addRestaurant(newItem) {
     ratingCnt: 1,
     badges: [],
     desc: '',
-    ...newItem,
+    ...newItem, // lat/lng, photos 등 덮어쓰기
   };
   restaurants.push(item);
   saveRestaurants(restaurants);
   renderRestaurants();
 };
-
-// 필요 시 리스트 초기화(테스트용)
 window.resetRestaurants = function resetRestaurants() {
   restaurants = [...initialRestaurants];
   saveRestaurants(restaurants);
   renderRestaurants();
 };
 
-// chips 클릭 → research.html로 이동 (AI/상세검색 제외)
+/* === 칩 클릭 → research.html 이동 === */
 window.addEventListener('DOMContentLoaded', () => {
   const goResearch = (keyword) => {
-    const url = new URL('research.html', location.href); // ../ 말고 동일 폴더 기준
+    const url = new URL('research.html', location.href);
     url.searchParams.set('keyword', keyword);
     location.href = url.toString();
   };
-
   document
     .querySelectorAll('.chips-row .chip:not(.chip--icon)')
     .forEach((btn) => {
@@ -205,12 +320,10 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     });
 });
-(function () {
-  // === 경로 상수(홈이 /mainpage 안에 있으므로 market 폴더는 한 단계 위) ===
-  const MARKET_URL = '../market/market.html';
-  const FOODS_URL  = '../market/market.html';
 
-  // === 0) 오류 메시지 유틸 ===
+/* === Kakao Map === */
+(function () {
+  /* 0) 오류 메시지 */
   function showMapError(msg) {
     const box = document.getElementById('mapBox');
     if (!box) return;
@@ -223,23 +336,20 @@ window.addEventListener('DOMContentLoaded', () => {
     box.appendChild(div);
   }
 
-  // === 1) 카카오 SDK 로더 ===
+  /* 1) Kakao SDK 로더 */
   const KAKAO_JS_KEY =
-  localStorage.getItem('kakao.appkey') || 'e771162067cb5bea30a5efc4c5a69160';
-  const SDK =
-  `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(KAKAO_JS_KEY)}&autoload=false`;
+    localStorage.getItem('kakao.appkey') || 'e771162067cb5bea30a5efc4c5a69160';
+  const SDK = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(
+    KAKAO_JS_KEY
+  )}&autoload=false`;
 
   function loadKakao() {
     return new Promise((res, rej) => {
       if (window.kakao?.maps) return res();
-  
       const s = document.createElement('script');
       s.src = SDK;
       s.async = true;
-  
-      // ★ 이벤트 객체 그대로 던지지 말고 명확한 에러로
       s.onerror = () => rej(new Error('SDK_LOAD_FAILED'));
-  
       s.onload = () => {
         try {
           kakao.maps.load(res);
@@ -247,7 +357,6 @@ window.addEventListener('DOMContentLoaded', () => {
           rej(e);
         }
       };
-  
       document.head.appendChild(s);
     });
   }
@@ -256,47 +365,103 @@ window.addEventListener('DOMContentLoaded', () => {
   function fitBounds(map, coords) {
     if (!coords?.length) return;
     const b = new kakao.maps.LatLngBounds();
-    coords.forEach(c => b.extend(LL(c.lat, c.lng)));
+    coords.forEach((c) => b.extend(LL(c.lat, c.lng)));
     map.setBounds(b, 20, 20, 20, 20);
   }
 
-  // === 2) 학교값 읽기(둘 다 지원: onboarding.school | schoolName) ===
-  function getSavedSchoolRaw() {
+  /* 2) 저장된 학교 읽기 (문자/객체 모두 대응) */
+  function getSavedSchoolLocal() {
     const a = localStorage.getItem('onboarding.school');
+    if (a) {
+      try {
+        const o = JSON.parse(a);
+        if (o && typeof o === 'object')
+          return { id: o.id || '', name: o.name || '' };
+      } catch {
+        /* ignore */
+      }
+      return { id: a, name: a };
+    }
     const b = localStorage.getItem('schoolName');
-    const v = a || b;
-    if (!v) return null;
-    try { return JSON.parse(v); } catch { return v; } // 문자열/JSON 모두 대응
+    if (b) return { id: b, name: b };
+    return { id: 'eulji', name: '을지대' };
   }
 
-  // === 3) 학교 → 좌표 매핑(필요 시 추가) ===
-  function resolveSchool(s) {
-    const list = [
-      { id: 'eulji',  name: '을지대',    lat: 37.4597, lng: 127.1652 },
-      { id: 'gachon', name: '가천대학교', lat: 37.4523, lng: 127.1290 },
-      { id: 'seongnam', name:'성남시청',  lat: 37.4200, lng: 127.1265 },
+  /* 3) 학교 좌표 매핑 */
+  function resolveSchool(input) {
+    const catalog = [
+      {
+        ids: ['eulji', '을지대', '을지대학교 성남캠퍼스'],
+        name: '을지대',
+        lat: 37.4597,
+        lng: 127.1652,
+      },
+      {
+        ids: ['gachon', '가천대학교', '가천대학교 글로벌캠퍼스'],
+        name: '가천대학교',
+        lat: 37.45125,
+        lng: 127.129277,
+      },
+      {
+        ids: ['shingu', 'singu', '신구대학교', '신구대'],
+        name: '신구대학교',
+        lat: 37.446899,
+        lng: 127.167517,
+      },
+      {
+        ids: ['dongseoul', 'donseoul', '동서울대학교'],
+        name: '동서울대학교',
+        lat: 37.45944,
+        lng: 127.12944,
+      },
     ];
-    if (!s) return list[0];
-    const key = String(s).trim();
-    return (
-      list.find(x => x.id === key || x.name === key) ||
-      list.find(x => key.includes(x.name)) ||
-      list[0]
-    );
+    const idKey = (input?.id || '')
+      .toString()
+      .toLowerCase()
+      .replace(/\s+/g, '');
+    const nameKey = (input?.name || '').toString().trim();
+    let item =
+      catalog.find((x) => x.ids.some((k) => k.toLowerCase() === idKey)) ||
+      catalog.find((x) => x.ids.includes(nameKey)) ||
+      catalog.find((x) => nameKey.includes(x.name)) ||
+      catalog[0];
+    return { ...item };
   }
 
-  // === 4) 데모 데이터(나중엔 API로 교체) ===
+  /* 4) 데모 마켓/플레이스 (지도 오버레이용) */
   const MARKETS = [
     { id: 'sinhung', name: '신흥시장', lat: 37.4419, lng: 127.1295 },
-    { id: 'moran',   name: '모란시장', lat: 37.4328, lng: 127.1290 },
+    { id: 'moran', name: '모란시장', lat: 37.4328, lng: 127.129 },
+    { id: 'geumgwang', name: '금광시장', lat: 37.449601, lng: 127.159294 },
   ];
   const PLACES = [
-    { id:'p1', market_id:'sinhung', name:'진선보쌈',           lat:37.4426, lng:127.1303, rating:4.5 },
-    { id:'p2', market_id:'sinhung', name:'한촌설렁탕 성남점',   lat:37.4413, lng:127.1269, rating:4.2 },
-    { id:'p3', market_id:'moran',   name:'칼국수집',           lat:37.4335, lng:127.1276, rating:4.6 },
+    {
+      id: 'p1',
+      market_id: 'sinhung',
+      name: '진선보쌈',
+      lat: 37.4426,
+      lng: 127.1303,
+      rating: 4.5,
+    },
+    {
+      id: 'p2',
+      market_id: 'sinhung',
+      name: '한촌설렁탕 성남점',
+      lat: 37.4413,
+      lng: 127.1269,
+      rating: 4.2,
+    },
+    {
+      id: 'p3',
+      market_id: 'moran',
+      name: '칼국수집',
+      lat: 37.4335,
+      lng: 127.1276,
+      rating: 4.6,
+    },
   ];
 
-  // === 5) 부트스트랩 ===
+  /* 5) 부트스트랩 */
   document.addEventListener('DOMContentLoaded', async () => {
     const box = document.getElementById('mapBox');
     if (!box) return;
@@ -311,87 +476,128 @@ window.addEventListener('DOMContentLoaded', () => {
     try {
       await loadKakao();
     } catch (e) {
-      // 네가 만든 showMapError 같은 함수에 메시지 넘겨
       showMapError(`카카오 SDK 로드 실패: ${e.message}`);
       return;
     }
 
-    // 중심 = 학교
-    const school = resolveSchool(getSavedSchoolRaw());
+    // 중심 = 저장된 학교
+    const saved = getSavedSchoolLocal();
+    const school = resolveSchool(saved);
     const center = { lat: school.lat, lng: school.lng };
 
     // 지도 생성
+    const DESIRED_LEVEL = 3; // 2=더가깝게(~30-50m), 3=약 50-100m
     const map = new kakao.maps.Map(mapDiv, {
       center: LL(center.lat, center.lng),
-      level: 4,
+      level: DESIRED_LEVEL,
     });
+
+    // 마커/라벨 유틸
     function addLabelOverlay({ lat, lng, href, name, kind = 'place' }) {
-      // 라벨 DOM 구성: [SVG 핀] [배지(텍스트)]
       const a = document.createElement('a');
       a.className = `map-label ${kind === 'market' ? 'market' : 'place'}`;
       a.href = href;
-    
       a.innerHTML = `
         <svg class="pin" xmlns="http://www.w3.org/2000/svg" width="19" height="28" viewBox="0 0 19 28" aria-hidden="true">
           <path d="M9.5 13.3C9.94556 13.3 10.3868 13.2095 10.7984 13.0336C11.21 12.8577 11.5841 12.5999 11.8991 12.2749C12.2142 11.9499 12.4641 11.564 12.6346 11.1394C12.8051 10.7148 12.8929 10.2596 12.8929 9.8C12.8929 8.87174 12.5354 7.9815 11.8991 7.32513C11.2628 6.66875 10.3998 6.3 9.5 6.3C8.60016 6.3 7.73717 6.66875 7.10089 7.32513C6.4646 7.9815 6.10714 8.87174 6.10714 9.8C6.10714 10.2596 6.1949 10.7148 6.36541 11.1394C6.53591 11.564 6.78583 11.9499 7.10089 12.2749C7.73717 12.9313 8.60016 13.3 9.5 13.3ZM9.5 0C14.7386 0 19 4.382 19 9.8C19 17.15 9.5 28 9.5 28C9.5 28 0 17.15 0 9.8C0 7.20088 1.00089 4.70821 2.78249 2.87035C4.56408 1.0325 6.98044 0 9.5 0Z" fill="#FF83A2"/>
         </svg>
         <span class="badge">${name}</span>
       `;
-    
-      // Kakao CustomOverlay
       const ov = new kakao.maps.CustomOverlay({
         position: new kakao.maps.LatLng(lat, lng),
-        content: a,              // DOM 노드 그대로 사용
-        yAnchor: 1,              // 좌표 = 요소의 ‘아래쪽’ (핀 꼭지점)
-        xAnchor: 0,              // 좌표 = 요소의 ‘왼쪽’ 기준
+        content: a,
+        yAnchor: 1,
+        xAnchor: 0,
         clickable: true,
         zIndex: kind === 'market' ? 3 : 2,
       });
-    
       ov.setMap(map);
       return ov;
     }
-  
-    // 마커들
+
+    // 마켓 마커들
     const coords = [];
-    // 시장
-    MARKETS.forEach(m => {
+    MARKETS.forEach((m) => {
       const marker = new kakao.maps.Marker({ map, position: LL(m.lat, m.lng) });
       const iw = new kakao.maps.InfoWindow({
-        content: `<div style="padding:4px 6px;font-size:12px">${m.name}</div>`
+        content: `<div style="padding:4px 6px;font-size:12px">${m.name}</div>`,
       });
-      kakao.maps.event.addListener(marker, 'mouseover', () => iw.open(map, marker));
-      kakao.maps.event.addListener(marker, 'mouseout',  () => iw.close());
-      kakao.maps.event.addListener(marker, 'click',     () => {
-        location.href = `${MARKET_URL}?id=${m.id}`;
+      kakao.maps.event.addListener(marker, 'mouseover', () =>
+        iw.open(map, marker)
+      );
+      kakao.maps.event.addListener(marker, 'mouseout', () => iw.close());
+      kakao.maps.event.addListener(marker, 'click', () => {
+        location.href = `${MARKET_URL}?market=${encodeURIComponent(m.id)}`;
       });
       coords.push({ lat: m.lat, lng: m.lng });
     });
 
-    // 맛집(시장 상세/랭킹으로)
-    PLACES.forEach(p => {
+    // 플레이스 라벨들
+    PLACES.forEach((p) => {
       addLabelOverlay({
-        lat: p.lat, lng: p.lng,
-        href: `${SHOP_URL}?id=${p.id}`,
+        lat: p.lat,
+        lng: p.lng,
+        href: `${MARKET_URL}?place=${encodeURIComponent(
+          p.id
+        )}&market=${encodeURIComponent(p.market_id)}&lat=${p.lat}&lng=${p.lng}`,
         name: p.name,
-        rating: p.rating,
         kind: 'place',
       });
       coords.push({ lat: p.lat, lng: p.lng });
     });
 
-    fitBounds(map, coords.length ? coords : [center]);
+    const FOCUS_ON_SCHOOL = true;
+    if (FOCUS_ON_SCHOOL) {
+      map.setCenter(LL(center.lat, center.lng));
+      map.setLevel(DESIRED_LEVEL);
+    } else {
+      fitBounds(map, coords.length ? coords : [center]);
+    }
+
+    // === 현재 위치 버튼 ===
+    const locBtn = document.createElement('button');
+    locBtn.type = 'button';
+    locBtn.textContent = '현재위치';
+    Object.assign(locBtn.style, {
+      position: 'absolute',
+      right: '8px',
+      top: '8px',
+      zIndex: 5,
+      padding: '6px 10px',
+      border: '1px solid #ddd',
+      borderRadius: '8px',
+      background: '#fff',
+      cursor: 'pointer',
+      fontSize: '12px',
+    });
+    document.getElementById('mapBox')?.appendChild(locBtn);
+
+    locBtn.onclick = () => {
+      if (!navigator.geolocation) return alert('GPS를 지원하지 않아요');
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          const here = new kakao.maps.LatLng(coords.latitude, coords.longitude);
+          map.setCenter(here);
+          new kakao.maps.Marker({ map, position: here });
+        },
+        () => alert('현재 위치를 가져오지 못했어요.')
+      );
+    };
   });
 })();
-// home.js의 kakao.maps.Map 생성 직후에
-Object.assign(locBtn.style, {position:'absolute',right:'8px',top:'8px',zIndex:5});
-document.getElementById('mapBox').appendChild(locBtn);
 
-locBtn.onclick = () => {
-  if (!navigator.geolocation) return alert('GPS를 지원하지 않아요');
-  navigator.geolocation.getCurrentPosition(({coords}) => {
-    const here = new kakao.maps.LatLng(coords.latitude, coords.longitude);
-    map.setCenter(here);
-    new kakao.maps.Marker({ map, position: here });
-  }, () => alert('현재 위치를 가져오지 못했어요.'));
-};
+/* === 헬퍼: 외부에서 라벨 동기화에 사용 === */
+function getSavedSchool() {
+  const a = localStorage.getItem('onboarding.school');
+  if (a) {
+    try {
+      const o = JSON.parse(a);
+      if (o && typeof o === 'object')
+        return { id: o.id || '', name: o.name || '' };
+    } catch {}
+    return { id: a, name: a };
+  }
+  const b = localStorage.getItem('schoolName');
+  if (b) return { id: b, name: b };
+  return { id: 'eulji', name: '을지대' };
+}

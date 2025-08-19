@@ -1,0 +1,471 @@
+:root {
+  --brand: #ff83a2;
+  --brand-weak: #ffd1de;
+  --text: #111;
+  --muted: #9aa0a6;
+  --maxw: 393px;
+  --radius: 14px;
+  --card: #ffe8ef;
+  --chip: #fff;
+  --border: #f6c9d6;
+  --shadow: 0 6px 20px rgba(255, 131, 162, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: #fff;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', system-ui,
+    Segoe UI, Roboto, Helvetica, Arial, 'Apple SD Gothic Neo', 'Malgun Gothic',
+    'Nanum Gothic', sans-serif;
+}
+.frame {
+  width: min(100%, var(--maxw));
+  min-height: 100svh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 상단바 */
+.topbar {
+  width: 393px;
+  height: 81px;
+  flex-shrink: 0;
+  border-radius: 0 0 10px 10px;
+  background: #ff83a2;
+  margin: 0 auto;
+}
+
+/* 타이틀 라인 (구분선 제거) */
+.titlebar {
+  position: relative;
+  width: min(100%, var(--maxw));
+  height: 48px;
+}
+.btn-back,
+.btn-close {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 2;
+}
+.btn-back {
+  left: 6px;
+}
+.btn-close {
+  right: 6px;
+}
+.title-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1;
+}
+
+/* 썸네일 */
+.market-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #ddd
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="%23bbb"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" fill="%23bbb"/></svg>')
+    center/60% no-repeat;
+  box-shadow: 0 0 0 1px #eee inset;
+}
+
+/* 제목 타이포 (Pretendard 17px, 중앙, 굵기 분리) */
+.page-title {
+  margin: 0;
+  text-align: center;
+  color: #000;
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Noto Sans KR',
+    system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  font-size: 17px;
+  line-height: 38.644px;
+  font-weight: 500; /* 기본 500 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.page-title strong {
+  font-weight: 700;
+}
+.page-title span {
+  font-weight: 500;
+}
+
+/* 본문 */
+.content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.card {
+  width: 324px;
+  /* height: 315px; */ /* 이 줄을 삭제하거나 주석 처리하세요 */
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #ffe2ea;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+  margin: 20px auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.sec-title {
+  color: #000;
+  font-family: Pretendard;
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1.5; /* line-height는 가독성을 위해 조정했습니다 */
+  margin: 0 0 15px 0;
+}
+.sec-title.mt {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #d3d3d3; /* 회색 구분선 추가 */
+}
+
+.mt {
+  margin-top: 14px;
+}
+
+/* === 별점 카드 (정확 규격) === */
+.rating-card {
+  width: 324px;
+  height: 113px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #ffe2ea;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+  margin: 0 auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center; /* 이 줄을 추가하세요 */
+  gap: 10px;
+}
+.rating-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* 별 아이콘: 회색 박스 제거 + 클릭 채움 */
+.stars {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.star {
+  width: 33px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  outline: 0;
+  box-shadow: none;
+}
+.star svg {
+  width: 33px;
+  height: 32px;
+}
+.star svg path {
+  stroke: #ff83a2;
+  stroke-width: 2;
+  fill: none;
+  transition: fill 0.12s ease;
+}
+.star.active svg path {
+  fill: #ff83a2;
+} /* 선택 시 채움 */
+
+/* 칩 */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  /* 가변 너비 설정: width 대신 padding 사용 */
+  padding: 0 15px;
+  height: 25px;
+  flex-shrink: 0;
+
+  /* 텍스트 정렬 및 스타일 */
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  color: #000;
+  font-family: Pretendard;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1; /* 텍스트 세로 중앙 정렬을 위해 1로 설정 */
+  white-space: nowrap; /* 글자가 길어져도 줄바꿈 방지 */
+
+  /* 테두리 및 배경 스타일 */
+  border-radius: 14.5px;
+  border: 1px solid #c2c2c2;
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+.chip[data-selected='true'] {
+  border-color: var(--brand);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 131, 162, 0.15) inset;
+  color: #e54888;
+}
+
+/* 업로드 */
+.upload-box {
+  width: 324px; /* 너비 설정 */
+  height: 167px; /* 높이 설정 */
+  flex-shrink: 0;
+  margin: 0 auto; /* 중앙 정렬 */
+
+  /* 디자인 스타일 적용 */
+  border-radius: 10px;
+  background: #ffe2ea;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+  border: none; /* 기존 점선 테두리 제거 */
+
+  /* 내부 콘텐츠 정렬 스타일 (기존 유지) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-align: center;
+}
+.upload-box .hint {
+  color: #444;
+  color: #000;
+  font-style: normal;
+  font-weight: 500;
+  font-family: Pretendard;
+}
+.upload-plus {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  font-size: 22px;
+  color: #ff83a2;
+}
+.thumbs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  justify-content: center; /* 썸네일 가운데 정렬 */
+}
+.thumb .add-more {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  border: 1px solid var(--brand);
+  background: #fff;
+  color: var(--brand);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  line-height: 22px;
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.thumb .remaining {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: bold;
+}
+.thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #eee;
+  background: #fafafa;
+  position: relative;
+}
+.thumb img,
+.thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.thumb .del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  border: 0;
+  background: #0008;
+  color: #fff;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* 텍스트영역 */
+.textarea {
+  /* 요청된 스타일 적용 */
+  width: 324px;
+  height: 167px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 1px solid #ffcdda;
+  background: #fff;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+
+  /* 중앙 정렬 및 내부 레이아웃 설정 */
+  margin: 0 auto;
+  padding: 12px;
+  display: flex; /* Flexbox 레이아웃으로 변경 */
+  flex-direction: column; /* 자식 요소들을 세로로 정렬 */
+}
+
+textarea {
+  width: 100%;
+  flex-grow: 1; /* 남는 공간을 모두 차지하도록 설정 */
+  border: 0;
+  outline: 0;
+  resize: none; /* 사용자가 크기 조절하는 기능 비활성화 */
+  font-size: 14px;
+  color: #333;
+  font-family: inherit;
+  background: transparent;
+  min-height: auto; /* 기존 min-height 초기화 */
+}
+.ta-hint {
+  color: #000;
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 38.644px; /* 322.03% */
+}
+.ta-foot {
+  display: flex;
+  justify-content: flex-end;
+  color: #9aa0a6;
+  font-size: 12px;
+}
+
+/* 등록 버튼 */
+.submit-bar {
+  padding: 10px 16px 22px;
+}
+.btn-submit {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: 0;
+  background: #ff83a2;
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* 별 버튼의 기본 버튼 스타일 제거 */
+.stars {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.star {
+  width: 33px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  outline: 0;
+  box-shadow: none;
+  appearance: none;
+}
+
+.star svg {
+  width: 33px;
+  height: 32px;
+}
+.star svg path {
+  stroke: #ff83a2;
+  stroke-width: 2;
+  fill: none;
+  transition: fill 0.12s ease;
+}
+
+/* 클릭/선택된 별은 채움 */
+.star.active svg path {
+  fill: #ff83a2;
+}
+/* 리뷰 카드 내 태그 스타일 */
+.review-tags {
+  color: #000;
+  font-family: Pretendard, sans-serif;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 23px;
+  margin-left: 8px;
+  flex-grow: 1; /* 날짜와 간격을 벌리기 위해 추가 */
+}
