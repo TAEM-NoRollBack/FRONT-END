@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI 검색 1</title>
+<style>
+  html, body { height: 100%; }
+body {
+  margin: 0;
+  /* 화면 한가운데 정렬 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* home.html과 톤 맞춤 (배경색 있으면 여기에) */
+  background: #fff;
+}
+  html,body{margin:0;padding:0;background:#fff;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+  /* 클릭 영역만 포인터 */
+  a.area{
+    position:absolute; display:block; text-decoration:none;
+    z-index:9999; cursor:pointer; /* ← 추가 */
+  }
+  a.area:hover{opacity:.96}
+</style>
+</head>
+<body>
+<div style="width: 393px; height: 852px; position: relative; background: white; overflow: hidden">
+
+  <!-- 상단 핑크 바 -->
+  <div style="width: 393px; height: 81px; left: 0px; top: -17px; position: absolute; background: #FF83A2; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px"></div>
+
+  <!-- 우상단 카메라 구멍 모양 -->
+  <div data-svg-wrapper style="left: 342px; top: 18px; position: absolute">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4.7315 21H20.424C21.939 21 23.215 20.8585 24.119 19.9545C25.023 19.0505 25.147 17.7925 25.147 16.277V11.732C25.147 10.2165 25.023 8.9495 24.119 8.0545C23.2065 7.15 21.939 7 20.424 7H4.705C3.2165 7 1.9405 7.1505 1.0365 8.0545C0.133 8.958 0 10.2165 0 11.705V16.277C0 17.792 0.133 19.0595 1.0365 19.9545C1.9405 20.8585 3.2165 21 4.7315 21ZM4.4835 19.5735C3.571 19.5735 2.6135 19.4495 2.0825 18.918C1.5415 18.377 1.4265 17.438 1.4265 16.5255V11.51C1.4265 10.5795 1.5415 9.6225 2.0735 9.0905C2.6135 8.5505 3.58 8.426 4.51 8.426H20.672C21.576 8.426 22.542 8.559 23.0735 9.091C23.6135 9.631 23.7205 10.5705 23.7205 11.483V16.525C23.7205 17.4375 23.605 18.3765 23.0735 18.9175C22.542 19.4575 21.576 19.5725 20.672 19.5725L4.4835 19.5735ZM4.3065 18.3685H6.6365C7.2925 18.3685 7.6555 18.2795 7.9395 18.005C8.223 17.7215 8.3025 17.3495 8.3025 16.7025V11.3065C8.3025 10.6505 8.2225 10.2875 7.9395 10.004C7.6555 9.7205 7.2925 9.6405 6.6365 9.6405H4.3065C3.6505 9.6405 3.2875 9.7205 3.004 10.004C2.7205 10.2875 2.64 10.65 2.64 11.3065V16.7025C2.64 17.3495 2.72 17.7215 3.0035 18.005C3.287 18.28 3.6505 18.3685 4.3065 18.3685ZM26.3605 16.2415C27.0605 16.1975 27.9995 15.3025 27.9995 13.9465C27.9995 12.6 27.06 11.705 26.3605 11.661V16.2415Z" fill="black"/>
+    </svg>
+  </div>
+  <div data-svg-wrapper style="left: 283px; top: 25px; position: absolute">
+    <svg width="22" height="14" viewBox="0 0 22 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M22 1.3125C22 0.587626 21.4528 0 20.7778 0H19.5556C18.8805 0 18.3333 0.587626 18.3333 1.3125V12.6875C18.3333 13.4124 18.8805 14 19.5556 14H20.7778C21.4528 14 22 13.4124 22 12.6875V1.3125ZM13.4817 2.8H14.704C15.379 2.8 15.9262 3.40173 15.9262 4.144V12.656C15.9262 13.3983 15.379 14 14.704 14H13.4817C12.8067 14 12.2595 13.3983 12.2595 12.656V4.144C12.2595 3.40173 12.8067 2.8 13.4817 2.8ZM8.51826 5.83332H7.29603C6.62102 5.83332 6.07381 6.44271 6.07381 7.19443V12.6389C6.07381 13.3906 6.62102 14 7.29603 14H8.51826C9.19327 14 9.74048 13.3906 9.74048 12.6389V7.19443C9.74048 6.44271 9.19327 5.83332 8.51826 5.83332ZM2.44444 8.63333H1.22222C0.547208 8.63333 0 9.23402 0 9.975V12.6583C0 13.3993 0.547208 14 1.22222 14H2.44444C3.11946 14 3.66667 13.3993 3.66667 12.6583V9.975C3.66667 9.23402 3.11946 8.63333 2.44444 8.63333Z" fill="black"/>
+    </svg>
+  </div>
+  <div data-svg-wrapper style="left: 315px; top: 25px; position: absolute">
+    <svg width="19" height="14" viewBox="0 0 19 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M9.50052 2.8007C12.2573 2.80082 14.9086 3.84794 16.9065 5.72563C17.057 5.87059 17.2974 5.86876 17.4456 5.72153L18.8838 4.28674C18.9588 4.21206 19.0006 4.11091 19 4.00566C18.9994 3.90041 18.9563 3.79974 18.8804 3.72594C13.6365 -1.24198 5.36367 -1.24198 0.11977 3.72594C0.0438088 3.79969 0.000709124 3.90032 8.67218e-06 4.00557C-0.000691779 4.11082 0.0410647 4.21201 0.116038 4.28674L1.55461 5.72153C1.70269 5.86899 1.94335 5.87082 2.0937 5.72563C4.09188 3.84782 6.74351 2.8007 9.50052 2.8007ZM9.4968 7.59324C11.0013 7.59315 12.452 8.17428 13.5672 9.22371C13.7181 9.37265 13.9557 9.36943 14.1027 9.21644L15.5295 7.71824C15.6047 7.63965 15.6464 7.53304 15.6453 7.42226C15.6442 7.31148 15.6004 7.20578 15.5238 7.1288C12.1278 3.84596 6.86869 3.84596 3.4727 7.1288C3.39599 7.20578 3.35223 7.31154 3.35122 7.42235C3.35021 7.53317 3.39205 7.63976 3.46735 7.71824L4.89377 9.21644C5.04081 9.36943 5.27841 9.37265 5.42925 9.22371C6.5437 8.17497 7.99333 7.59389 9.4968 7.59324ZM12.2949 10.7656C12.297 10.8852 12.256 11.0006 12.1814 11.0844L9.76872 13.872C9.698 13.9539 9.60157 14 9.50096 14C9.40035 14 9.30393 13.9539 9.2332 13.872L6.82017 11.0844C6.74562 11.0005 6.70462 10.8851 6.70683 10.7655C6.70904 10.6459 6.75427 10.5326 6.83184 10.4524C8.37264 8.96032 10.6293 8.96032 12.1701 10.4524C12.2476 10.5326 12.2928 10.646 12.2949 10.7656Z" fill="black"/>
+    </svg>
+  </div>
+
+  <!-- 상태 표시 -->
+  <div style="width: 61px; height: 39px; left: 35px; top: 15px; position: absolute; text-align: center; color: black; font-size: 20px; font-weight: 700; line-height: 38.64px; word-wrap: break-word">2:21</div>
+  <div style="width: 105px; height: 30px; left: 144px; top: 17px; position: absolute; background: black; border-radius: 15px"></div>
+
+  <!-- 하단 큰 버튼(시각요소) -->
+  <div style="width: 310px; height: 50px; left: 42px; top: 762px; position: absolute; background: #FF83A2; border-radius: 65px"></div>
+  <!-- 실제 클릭 영역: 페이지2로 이동 -->
+  <a class="area" href="ai-search-2.html" aria-label="무엇이든 물어보세요로 이동" style="left:42px; top:762px; width:310px; height:50px;"></a>
+
+  <!-- 제목 -->
+  <div style="left: 171px; top: 76px; position: absolute; color: black; font-size: 18px; font-weight: 400; line-height: 38.64px; word-wrap: break-word">AI 검색</div>
+
+  <!-- 버튼 레이블 -->
+  <div style="left: 62px; top: 767px; position: absolute; color: black; font-size: 18px; font-weight: 400; line-height: 38.64px; word-wrap: break-word; pointer-events:none;">
+    무엇이든 물어보세요
+  </div>
+
+  <!-- 닫기 X (시각요소) -->
+  <div data-svg-wrapper style="left: 356px; top: 89px; position: absolute">
+    <svg width="13" height="15" viewBox="0 0 13 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1 14.1094L12 1.00009" stroke="#FF83A2" stroke-width="1.5"/>
+    </svg>
+  </div>
+  <div data-svg-wrapper style="left: 356px; top: 89px; position: absolute">
+    <svg width="13" height="15" viewBox="0 0 13 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1 1.00049L12 14.1098" stroke="#FF83A2" stroke-width="1.5"/>
+    </svg>
+  </div>
+  <!-- 닫기 클릭 영역: 브라우저 뒤로가기 -->
+  <a class="area" href="../mainpage/home.html" aria-label="닫기" style="left:348px; top:82px; width:28px; height:28px;"></a>
+
+  <!-- 하단 마이크 아이콘(시각요소) -->
+  <div data-svg-wrapper style="left: 322px; top: 777px; position: absolute">
+    <svg width="9" height="16" viewBox="0 0 9 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 4.5C8 2.567 6.433 1 4.5 1C2.567 1 1 2.567 1 4.5V11C1 12.933 2.567 14.5 4.5 14.5C6.433 14.5 8 12.933 8 11V4.5Z" stroke="black" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div data-svg-wrapper style="left: 318px; top: 786.50px; position: absolute">
+    <svg width="17" height="13" viewBox="0 0 17 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1 1.5C1 5.642 4.358 9 8.5 9M8.5 9C12.642 9 16 5.642 16 1.5M8.5 9V12" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <!-- 하단 마이크 클릭 영역: 페이지2로 이동 -->
+  <a class="area" href="ai-search-2.html" aria-label="음성으로 질문하기" style="left:308px; top:775px; width:36px; height:30px;"></a>
+
+  <!-- 가운데 가게 아이콘 블록 -->
+  <div style="width: 231px; height: 208px; left: 81px; top: 322px; position: absolute; opacity: 0.10; overflow: hidden">
+    <div data-svg-wrapper style="left: 14.48px; top: 70.25px; position: absolute">
+      <svg width="13" height="138" viewBox="0 0 13 138" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.2607 0.246094H0.484619V138H12.2607V0.246094Z" fill="#FF83A2"/>
+      </svg>
+    </div>
+    <div data-svg-wrapper style="left: 204.60px; top: 70.25px; position: absolute">
+      <svg width="13" height="138" viewBox="0 0 13 138" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.381 0.246094H0.60498V138H12.381V0.246094Z" fill="#FF83A2"/>
+      </svg>
+    </div>
+    <div data-svg-wrapper style="left: 0px; top: 0px; position: absolute">
+      <svg width="231" height="87" viewBox="0 0 231 87" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M231 48.1747C231 48.1747 209.803 33.3663 206.001 3.33242C205.761 1.42818 204.146 0 202.233 0H28.7672C26.8536 0 25.2386 1.42818 24.9989 3.33242C21.1969 33.3663 0 48.1747 0 48.1747V64.5376H0.0546746C0.0210287 65.0095 0 65.4813 0 65.9616C0 77.5092 9.34514 86.8703 20.8731 86.8703C29.3771 86.8703 36.6866 81.7769 39.9377 74.4675C43.1929 81.7727 50.5025 86.8703 59.0023 86.8703C67.502 86.8703 74.4836 82.0086 77.8439 74.9688C81.2043 82.0086 88.3751 86.8703 96.6856 86.8703C105.497 86.8703 113.029 81.3977 116.091 73.6628C119.153 81.3977 126.685 86.8703 135.496 86.8703C144.307 86.8703 151.596 81.5789 154.75 74.0462C157.904 81.5789 165.336 86.8703 174.004 86.8703C181.721 86.8703 188.455 82.67 192.068 76.4349C195.68 82.6742 202.414 86.8703 210.131 86.8703C221.659 86.8703 231.004 77.5092 231.004 65.9616C231.004 65.4813 230.983 65.0095 230.95 64.5376H231.004V48.1747H231ZM46.6164 45.609H17.008C30.9963 30.5731 35.5469 8.63647 35.5469 8.63647H57.9803L46.6164 45.609ZM89.5611 45.609H58.2663L70.4671 8.63647H92.1939L89.5611 45.609ZM100.732 45.609L105.131 9.06619H127.762L131.917 45.609H100.732ZM142.659 45.609L140.026 8.63647H161.753L173.953 45.609H142.659ZM186.066 45.609L174.702 8.63647H196.614C196.614 8.63647 201.686 30.5731 215.674 45.609H186.066Z" fill="#FF83A2"/>
+      </svg>
+    </div>
+    <div data-svg-wrapper style="left: 52.96px; top: 124.35px; position: absolute">
+      <svg width="127" height="43" viewBox="0 0 127 43" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M35.2387 11.5198L90.1827 11.5756L106.236 30.997L20.1361 30.9057L35.2336 11.5198M31.491 0.352979C30.4028 0.352979 29.3757 0.855253 28.7095 1.71268L1.70787 36.3851C-0.0871518 38.6936 1.55532 42.0472 4.48431 42.0522L122.513 42.174C125.488 42.174 127.121 38.7189 125.229 36.4257L96.5187 1.6924C95.8526 0.885706 94.8559 0.413859 93.8084 0.413859L31.4961 0.3479L31.491 0.352979Z" fill="#FF83A2"/>
+      </svg>
+    </div>
+    <div data-svg-wrapper style="left: 67.61px; top: 159.39px; position: absolute">
+      <svg width="97" height="49" viewBox="0 0 97 49" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0.609863 0.391357V49.0001H25.6865C25.6865 32.4526 35.9006 19.0417 48.5001 19.0417C61.0996 19.0417 71.3137 32.4526 71.3137 49.0001H96.3903V0.391357H0.614957H0.609863Z" fill="#FF83A2"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 설명 카피 -->
+  <div style="left: 39px; top: 419px; position: absolute; text-align: center; color: black; font-size: 18px; font-weight: 400; line-height: 27px; word-wrap: break-word">
+    가까운 거리, 인기 메뉴, 분위기 좋은 곳까지 <br/>AI가 분석해 추천합니다. 당신이 원하는 조건을 <br/>솔직하게 적어보세요.
+  </div>
+  <div style="left: 78px; top: 370px; position: absolute; color: black; font-size: 22px; font-weight: 600; line-height: 38.64px; word-wrap: break-word">
+    지금 먹고 싶은 걸 말해보세요
+  </div>
+
+  <!-- 하단 그립 -->
+  <div style="width: 120px; height: 7px; left: 137px; top: 837px; position: absolute; background: #FF83A2; border-radius: 69px"></div>
+
+  <!-- 좌상단 뒤로(시각요소) -->
+  <div data-svg-wrapper style="left: 26px; top: 90px; position: absolute">
+    <svg width="10" height="17" viewBox="0 0 10 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M2.41379 8.485L9.48479 15.556L8.07079 16.97L0.292786 9.192C0.105315 9.00447 0 8.75016 0 8.485C0 8.21984 0.105315 7.96553 0.292786 7.778L8.07079 0L9.48479 1.414L2.41379 8.485Z" fill="#FF83A2"/>
+    </svg>
+  </div>
+  <!-- 뒤로 클릭 영역: 브라우저 뒤로가기 -->
+  <a class="area" href="javascript:history.back()" aria-label="뒤로가기" style="left:18px; top:84px; width:28px; height:28px;"></a>
+
+</div>
+</body>
+</html>
