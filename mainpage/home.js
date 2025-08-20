@@ -9,6 +9,37 @@ const MARKET_CATALOG = [
   { id: 'geumgwang', name: '금광시장', lat: 37.449601, lng: 127.159294 },
 ];
 
+/* === 헬퍼: 저장된 학교 정보 가져오기 === */
+function getSavedSchool() {
+  // 1. 최신 통합 프로필('onboarding_profile')에서 학교 정보를 먼저 확인합니다.
+  const profileRaw = localStorage.getItem('onboarding_profile');
+  if (profileRaw) {
+    try {
+      const profile = JSON.parse(profileRaw);
+      if (profile && profile.school) {
+        // schoolId와 school 이름을 반환합니다.
+        return { id: profile.schoolId || '', name: profile.school };
+      }
+    } catch {}
+  }
+
+  // 2. (하위 호환) 통합 프로필이 없을 경우, 이전 방식의 데이터를 확인합니다.
+  const a = localStorage.getItem('onboarding.school');
+  if (a) {
+    try {
+      const o = JSON.parse(a);
+      if (o && typeof o === 'object')
+        return { id: o.id || '', name: o.name || '' };
+    } catch {}
+    return { id: a, name: a };
+  }
+  const b = localStorage.getItem('schoolName');
+  if (b) return { id: b, name: b };
+
+  // 3. 모든 정보가 없으면 기본값(을지대)을 반환합니다.
+  return { id: 'eulji', name: '을지대' };
+}
+
 /* === 거리/최근접 시장 유틸 === */
 function pack(data) {
   try {
@@ -43,25 +74,35 @@ function nearestMarketFor(lat, lng) {
 
 /* === 상세 페이지 링크 빌더 === */
 function buildDetailHref(r) {
-  // 가게의 필수 정보(이름, 평점 등)를 객체로 묶습니다.
+  // 가게 상세 표시용 데이터 (좌표 포함!)
   const placeData = {
     name: r.name,
     rating: r.rating,
     ratingCount: r.ratingCnt,
     addr: r.addr,
     photos: r.photos,
+    lat: r.lat,
+    lng: r.lng,
   };
 
-  // 가게가 속한 가장 가까운 시장을 찾습니다.
+  // 가장 가까운 시장
   const nearest =
     typeof r.lat === 'number' && typeof r.lng === 'number'
       ? nearestMarketFor(r.lat, r.lng)
-      : { id: 'sinhung' }; // 좌표 없으면 기본 시장
+      : { id: 'sinhung' };
 
   const u = new URL(MARKET_URL, location.href);
-  u.searchParams.set('place', r.id); // 가게 ID를 'place' 파라미터로 전달
-  u.searchParams.set('market', nearest.id); // 소속 시장 ID 전달
-  u.searchParams.set('px', pack(placeData)); // 가게 정보를 압축하여 'px' 파라미터로 전달
+  u.searchParams.set('place', r.id);
+  u.searchParams.set('market', nearest.id);
+
+  // ✅ 좌표를 쿼리에도 *직접* 실어 보낸다 (market.html 안전 장치)
+  if (typeof r.lat === 'number' && typeof r.lng === 'number') {
+    u.searchParams.set('lat', r.lat);
+    u.searchParams.set('lng', r.lng);
+  }
+
+  // ✅ px에도 좌표를 넣어 둔다 (이중 안전망)
+  u.searchParams.set('px', pack(placeData));
 
   return u.toString();
 }
@@ -369,24 +410,6 @@ window.addEventListener('DOMContentLoaded', () => {
     map.setBounds(b, 20, 20, 20, 20);
   }
 
-  /* 2) 저장된 학교 읽기 (문자/객체 모두 대응) */
-  function getSavedSchoolLocal() {
-    const a = localStorage.getItem('onboarding.school');
-    if (a) {
-      try {
-        const o = JSON.parse(a);
-        if (o && typeof o === 'object')
-          return { id: o.id || '', name: o.name || '' };
-      } catch {
-        /* ignore */
-      }
-      return { id: a, name: a };
-    }
-    const b = localStorage.getItem('schoolName');
-    if (b) return { id: b, name: b };
-    return { id: 'eulji', name: '을지대' };
-  }
-
   /* 3) 학교 좌표 매핑 */
   function resolveSchool(input) {
     const catalog = [
@@ -435,6 +458,7 @@ window.addEventListener('DOMContentLoaded', () => {
     { id: 'geumgwang', name: '금광시장', lat: 37.449601, lng: 127.159294 },
   ];
   const PLACES = [
+    // 신흥시장
     {
       id: 'p1',
       market_id: 'sinhung',
@@ -442,6 +466,11 @@ window.addEventListener('DOMContentLoaded', () => {
       lat: 37.4426,
       lng: 127.1303,
       rating: 4.5,
+      photos: [
+        'https://picsum.photos/seed/food1a/640/400',
+        'https://picsum.photos/seed/food1b/640/400',
+      ],
+      reviews: 23,
     },
     {
       id: 'p2',
@@ -449,8 +478,15 @@ window.addEventListener('DOMContentLoaded', () => {
       name: '한촌설렁탕 성남점',
       lat: 37.4413,
       lng: 127.1269,
-      rating: 4.2,
+      rating: 4.0,
+      photos: [
+        'https://picsum.photos/seed/food2a/640/400',
+        'https://picsum.photos/seed/food2b/640/400',
+      ],
+      reviews: 23,
     },
+
+    // 모란시장
     {
       id: 'p3',
       market_id: 'moran',
@@ -458,9 +494,89 @@ window.addEventListener('DOMContentLoaded', () => {
       lat: 37.4335,
       lng: 127.1276,
       rating: 4.6,
+      photos: [
+        'https://picsum.photos/seed/food3a/640/400',
+        'https://picsum.photos/seed/food3b/640/400',
+      ],
+      reviews: 18,
+    },
+    {
+      id: 'p6',
+      market_id: 'moran',
+      name: '꼬치굽는형',
+      lat: 37.4442,
+      lng: 127.131,
+      rating: 4.7,
+      photos: [
+        'https://picsum.photos/seed/food6a/640/400',
+        'https://picsum.photos/seed/food6b/640/400',
+      ],
+      reviews: 9,
+    },
+
+    // 금광시장
+    {
+      id: 'p4',
+      market_id: 'geumgwang',
+      name: '만두로드',
+      lat: 37.4399,
+      lng: 127.1312,
+      rating: 4.3,
+      photos: [
+        'https://picsum.photos/seed/food4a/640/400',
+        'https://picsum.photos/seed/food4b/640/400',
+      ],
+      reviews: 31,
+    },
+    {
+      id: 'p5',
+      market_id: 'geumgwang',
+      name: '시장김밥',
+      lat: 37.4411,
+      lng: 127.1334,
+      rating: 4.1,
+      photos: [
+        'https://picsum.photos/seed/food5a/640/400',
+        'https://picsum.photos/seed/food5b/640/400',
+      ],
+      reviews: 12,
+    },
+    {
+      id: 'p7',
+      market_id: 'geumgwang',
+      name: '우동명가',
+      lat: 37.4407,
+      lng: 127.128,
+      rating: 3.9,
+      photos: [
+        'https://picsum.photos/seed/food7a/640/400',
+        'https://picsum.photos/seed/food7b/640/400',
+      ],
+      reviews: 7,
     },
   ];
-
+  function buildPlaceHrefHome(p) {
+    const u = new URL(MARKET_URL, location.href);
+    u.searchParams.set('place', p.id);
+    u.searchParams.set('market', p.market_id);
+    if (typeof p.lat === 'number' && typeof p.lng === 'number') {
+      u.searchParams.set('lat', p.lat);
+      u.searchParams.set('lng', p.lng);
+    }
+    // px에 기본 정보 패킹(상세에서 가상 가게 복구용)
+    u.searchParams.set(
+      'px',
+      pack({
+        name: p.name,
+        lat: p.lat,
+        lng: p.lng,
+        rating: p.rating,
+        ratingCount: p.reviews || 0,
+        photos: Array.isArray(p.photos) ? p.photos.slice(0, 6) : [],
+      })
+    );
+    return u.toString();
+  }
   /* 5) 부트스트랩 */
   document.addEventListener('DOMContentLoaded', async () => {
     const box = document.getElementById('mapBox');
@@ -481,7 +597,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     // 중심 = 저장된 학교
-    const saved = getSavedSchoolLocal();
+    const saved = getSavedSchool();
     const school = resolveSchool(saved);
     const center = { lat: school.lat, lng: school.lng };
 
@@ -497,12 +613,17 @@ window.addEventListener('DOMContentLoaded', () => {
       const a = document.createElement('a');
       a.className = `map-label ${kind === 'market' ? 'market' : 'place'}`;
       a.href = href;
+
+      // ✅ 색상 분기: place=핑크, market=하늘(#59F1FF)
+      const color = kind === 'market' ? '#59F1FF' : '#FF83A2';
+
       a.innerHTML = `
-        <svg class="pin" xmlns="http://www.w3.org/2000/svg" width="19" height="28" viewBox="0 0 19 28" aria-hidden="true">
-          <path d="M9.5 13.3C9.94556 13.3 10.3868 13.2095 10.7984 13.0336C11.21 12.8577 11.5841 12.5999 11.8991 12.2749C12.2142 11.9499 12.4641 11.564 12.6346 11.1394C12.8051 10.7148 12.8929 10.2596 12.8929 9.8C12.8929 8.87174 12.5354 7.9815 11.8991 7.32513C11.2628 6.66875 10.3998 6.3 9.5 6.3C8.60016 6.3 7.73717 6.66875 7.10089 7.32513C6.4646 7.9815 6.10714 8.87174 6.10714 9.8C6.10714 10.2596 6.1949 10.7148 6.36541 11.1394C6.53591 11.564 6.78583 11.9499 7.10089 12.2749C7.73717 12.9313 8.60016 13.3 9.5 13.3ZM9.5 0C14.7386 0 19 4.382 19 9.8C19 17.15 9.5 28 9.5 28C9.5 28 0 17.15 0 9.8C0 7.20088 1.00089 4.70821 2.78249 2.87035C4.56408 1.0325 6.98044 0 9.5 0Z" fill="#FF83A2"/>
-        </svg>
-        <span class="badge">${name}</span>
-      `;
+    <svg class="pin" xmlns="http://www.w3.org/2000/svg" width="19" height="28" viewBox="0 0 19 28" aria-hidden="true" style="color:${color}">
+      <path d="M9.5 13.3C9.94556 13.3 10.3868 13.2095 10.7984 13.0336C11.21 12.8577 11.5841 12.5999 11.8991 12.2749C12.2142 11.9499 12.4641 11.564 12.6346 11.1394C12.8051 10.7148 12.8929 10.2596 12.8929 9.8C12.8929 8.87174 12.5354 7.9815 11.8991 7.32513C11.2628 6.66875 10.3998 6.3 9.5 6.3C8.60016 6.3 7.73717 6.66875 7.10089 7.32513C6.4646 7.9815 6.10714 8.87174 6.10714 9.8C6.10714 10.2596 6.1949 10.7148 6.36541 11.1394C6.53591 11.564 6.78583 11.9499 7.10089 12.2749C7.73717 12.9313 8.60016 13.3 9.5 13.3ZM9.5 0C14.7386 0 19 4.382 19 9.8C19 17.15 9.5 28 9.5 28C9.5 28 0 17.15 0 9.8C0 7.20088 1.00089 4.70821 2.78249 2.87035C4.56408 1.0325 6.98044 0 9.5 0Z" fill="currentColor"/>
+    </svg>
+    <span class="badge">${name}</span>
+  `;
+
       const ov = new kakao.maps.CustomOverlay({
         position: new kakao.maps.LatLng(lat, lng),
         content: a,
@@ -518,16 +639,12 @@ window.addEventListener('DOMContentLoaded', () => {
     // 마켓 마커들
     const coords = [];
     MARKETS.forEach((m) => {
-      const marker = new kakao.maps.Marker({ map, position: LL(m.lat, m.lng) });
-      const iw = new kakao.maps.InfoWindow({
-        content: `<div style="padding:4px 6px;font-size:12px">${m.name}</div>`,
-      });
-      kakao.maps.event.addListener(marker, 'mouseover', () =>
-        iw.open(map, marker)
-      );
-      kakao.maps.event.addListener(marker, 'mouseout', () => iw.close());
-      kakao.maps.event.addListener(marker, 'click', () => {
-        location.href = `${MARKET_URL}?market=${encodeURIComponent(m.id)}`;
+      addLabelOverlay({
+        lat: m.lat,
+        lng: m.lng,
+        href: buildMarketHref(m), // 상세로 이동
+        name: m.name,
+        kind: 'market', // ← 색 분기 트리거
       });
       coords.push({ lat: m.lat, lng: m.lng });
     });
@@ -537,9 +654,7 @@ window.addEventListener('DOMContentLoaded', () => {
       addLabelOverlay({
         lat: p.lat,
         lng: p.lng,
-        href: `${MARKET_URL}?place=${encodeURIComponent(
-          p.id
-        )}&market=${encodeURIComponent(p.market_id)}&lat=${p.lat}&lng=${p.lng}`,
+        href: buildPlaceHrefHome(p), // ← 이걸로 교체
         name: p.name,
         kind: 'place',
       });
@@ -585,19 +700,17 @@ window.addEventListener('DOMContentLoaded', () => {
     };
   });
 })();
-
-/* === 헬퍼: 외부에서 라벨 동기화에 사용 === */
-function getSavedSchool() {
-  const a = localStorage.getItem('onboarding.school');
-  if (a) {
-    try {
-      const o = JSON.parse(a);
-      if (o && typeof o === 'object')
-        return { id: o.id || '', name: o.name || '' };
-    } catch {}
-    return { id: a, name: a };
+function buildMarketHref(m) {
+  const u = new URL(MARKET_URL, location.href);
+  u.searchParams.set('market', m.id);
+  if (typeof m.lat === 'number' && typeof m.lng === 'number') {
+    u.searchParams.set('lat', m.lat);
+    u.searchParams.set('lng', m.lng);
   }
-  const b = localStorage.getItem('schoolName');
-  if (b) return { id: b, name: b };
-  return { id: 'eulji', name: '을지대' };
+  // 안전망: 상세에서 px로도 복구 가능
+  u.searchParams.set(
+    'px',
+    pack({ id: m.id, name: m.name, lat: m.lat, lng: m.lng })
+  );
+  return u.toString();
 }

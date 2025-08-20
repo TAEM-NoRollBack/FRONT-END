@@ -1,6 +1,6 @@
-// onboarding2.js (HOTFIX FINAL)
 (() => {
   const HOME_URL = '../mainpage/home.html';
+  const MYPAGE_URL = '../mypage/mypage.html';
 
   const $ = (sel, root = document) => root.querySelector(sel);
   const form = $('#eduForm');
@@ -8,9 +8,11 @@
   const major = $('#major');
   const btn = $('#btnNext');
 
+  const params = new URLSearchParams(location.search);
+  const isEditMode = params.get('mode') === 'edit';
+
   const errSchool = $('#errSchool');
   const errMajor = $('#errMajor');
-
   const schoolBox = $('#schoolBox');
   const schoolOptions = $('#schoolOptions');
 
@@ -49,52 +51,12 @@
     const r = e.target;
     if (r && r.name === 'schoolOpt') {
       school.value = r.value;
-      persistSchoolChoice(r.value);
       closePanel();
       updateState();
       errSchool.textContent = '';
       major.focus();
     }
   });
-
-  // ✅ 동서울 id 통일: dongseoul (home.js는 dongseoul/donseoul 모두 허용)
-  const SCHOOL_MAP = {
-    '가천대학교 글로벌캠퍼스': 'gachon',
-    동서울대학교: 'dongseoul',
-    신구대학교: 'shingu',
-    '을지대학교 성남캠퍼스': 'eulji',
-    // 필요시 이름 추가
-    을지대: 'eulji',
-    가천대학교: 'gachon',
-    신구대: 'shingu',
-  };
-  const toSlug = (s) => s.toLowerCase().replace(/\s+/g, '');
-
-  function persistSchoolChoice(name) {
-    const id = SCHOOL_MAP[name] || toSlug(name);
-    const obj = { id, name };
-    try {
-      localStorage.setItem('onboarding.school', JSON.stringify(obj)); // 객체 저장
-      localStorage.setItem('schoolName', name); // 문자열도 병행
-    } catch {}
-  }
-
-  (function prefillFromStorage() {
-    const raw =
-      localStorage.getItem('onboarding.school') ||
-      localStorage.getItem('schoolName');
-    if (!raw) {
-      updateState();
-      return;
-    }
-    try {
-      const v = JSON.parse(raw);
-      school.value = v?.name || v;
-    } catch {
-      school.value = raw;
-    }
-    updateState();
-  })();
 
   major.addEventListener('input', updateState);
 
@@ -114,15 +76,48 @@
     busy = true;
     btn.disabled = true;
 
-    persistSchoolChoice(school.value.trim());
-
-    const payload = { school: school.value.trim(), major: major.value.trim() };
     try {
-      sessionStorage.setItem('onboarding.education', JSON.stringify(payload));
-    } catch {}
+      const profileRaw = localStorage.getItem('onboarding_profile');
+      const profile = profileRaw ? JSON.parse(profileRaw) : {};
 
-    location.href = HOME_URL;
+      profile.school = school.value.trim();
+      profile.major = major.value.trim();
+
+      const SCHOOL_MAP = {
+        '가천대학교 글로벌캠퍼스': 'gachon',
+        동서울대학교: 'dongseoul',
+        신구대학교: 'shingu',
+        '을지대학교 성남캠퍼스': 'eulji',
+        을지대: 'eulji',
+        가천대학교: 'gachon',
+        신구대: 'shingu',
+      };
+      const toSlug = (s) => s.toLowerCase().replace(/\s+/g, '');
+      profile.schoolId = SCHOOL_MAP[profile.school] || toSlug(profile.school);
+
+      localStorage.setItem('onboarding_profile', JSON.stringify(profile));
+    } catch (err) {
+      console.error('프로필 저장 중 오류 발생:', err);
+    }
+
+    location.href = isEditMode ? MYPAGE_URL : HOME_URL;
   });
 
-  updateState();
+  // 페이지 로드 시
+  (() => {
+    try {
+      const profileRaw = localStorage.getItem('onboarding_profile');
+      if (profileRaw) {
+        const profile = JSON.parse(profileRaw);
+        if (profile.school) school.value = profile.school;
+        if (profile.major) major.value = profile.major;
+      }
+    } catch {}
+
+    if (isEditMode) {
+      btn.textContent = '수정 완료';
+    }
+
+    updateState();
+  })();
 })();

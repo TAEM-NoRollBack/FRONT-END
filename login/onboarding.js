@@ -1,4 +1,3 @@
-// onboarding/js/profile.js (FINAL)
 (() => {
   const $ = (sel, root = document) => root.querySelector(sel);
 
@@ -12,18 +11,13 @@
   const daySel = $('#birthDay');
   const btnNext = $('#btnNext');
 
-  const NEXT_PAGE = './onboarding2.html'; // ✅ 다음 스텝
-  const API_URL = '/api/onboarding/profile'; // 백엔드 붙이면 여기만 맞춰
+  const params = new URLSearchParams(location.search);
+  const isEditMode = params.get('mode') === 'edit';
 
-  // 소셜 프리필(있으면)
-  try {
-    const prefill = JSON.parse(localStorage.getItem('oauth_profile') || '{}');
-    if (prefill.name) nameInput.value = prefill.name;
-    if (prefill.email) emailInput.value = prefill.email;
-    if (prefill.nickname) nickInput.value = prefill.nickname;
-  } catch (_) {}
+  const NEXT_PAGE = './onboarding2.html';
+  const API_URL = '/api/onboarding/profile';
 
-  // DOB 옵션 채우기
+  // 생년월일(DOB) 옵션 채우는 함수들
   const now = new Date();
   const THIS_YEAR = now.getFullYear();
   const startYear = THIS_YEAR - 80;
@@ -74,7 +68,42 @@
   fillMonths();
   fillDays();
 
-  // 검증
+  // 기존 정보 불러오기
+  function prefillForm() {
+    try {
+      const oauthPrefill = JSON.parse(
+        localStorage.getItem('oauth_profile') || '{}'
+      );
+      if (oauthPrefill.name) nameInput.value = oauthPrefill.name;
+      if (oauthPrefill.email) emailInput.value = oauthPrefill.email;
+      if (oauthPrefill.nickname) nickInput.value = oauthPrefill.nickname;
+
+      if (isEditMode) {
+        const profileRaw = localStorage.getItem('onboarding_profile');
+        if (!profileRaw) return;
+
+        const profile = JSON.parse(profileRaw);
+        nameInput.value = profile.name || '';
+        nickInput.value = profile.nickname || '';
+        emailInput.value = profile.email || '';
+        genderSelect.value = profile.gender || '';
+
+        if (profile.birthDate) {
+          const [year, month, day] = profile.birthDate.split('-');
+          yearSel.value = year;
+          monthSel.value = month;
+          fillDays();
+          daySel.value = day;
+        }
+        btnNext.textContent = '다음';
+      }
+    } catch (e) {
+      console.error('기존 프로필 정보를 불러오는 데 실패했습니다.', e);
+    }
+  }
+  prefillForm();
+
+  // 검증 관련 변수 및 함수
   const errs = {
     name: $('#err-name'),
     nickname: $('#err-nickname'),
@@ -82,15 +111,12 @@
     gender: $('#err-gender'),
     birth: $('#err-birth'),
   };
-
   function clearErrors() {
     Object.values(errs).forEach((el) => (el.textContent = ''));
   }
-
   function validate() {
     clearErrors();
     let ok = true;
-
     if (!nameInput.value.trim()) {
       errs.name.textContent = '이름을 입력해주세요.';
       ok = false;
@@ -127,43 +153,37 @@
       name: nameInput.value.trim(),
       nickname: nickInput.value.trim(),
       email: emailInput.value.trim(),
-      gender: genderSelect.value, // 'male' | 'female' | 'none'
-      birthDate: `${yearSel.value}-${monthSel.value}-${daySel.value}`, // YYYY-MM-DD
+      gender: genderSelect.value,
+      birthDate: `${yearSel.value}-${monthSel.value}-${daySel.value}`,
       provider: 'kakao',
     };
 
     btnNext.disabled = true;
-
-    // 프론트-온리 백업 저장(다음 페이지에서 써먹게)
-    try { localStorage.setItem('onboarding_profile', JSON.stringify(payload)); } catch (_) {}
+    try {
+      localStorage.setItem('onboarding_profile', JSON.stringify(payload));
+    } catch (_) {}
 
     try {
-      // 백엔드가 준비돼 있으면 저장 시도
       const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
         credentials: 'include',
       });
-
       if (res.ok) {
         const data = await res.json().catch(() => ({}));
         if (data.userId) localStorage.setItem('userId', data.userId);
-        window.location.href = NEXT_PAGE; // ✅ 성공 → 다음 스텝
-        return;
       } else {
-        // 실패해도 남 탓하지 말고 그냥 간다. MOOD.
         console.warn('Profile save failed:', await res.text().catch(() => ''));
-        window.location.href = NEXT_PAGE;       // ✅ 실패 → 로컬 저장만 믿고 진행
-        return;
       }
     } catch (err) {
-      // 네트워크 터져도 진행
       console.warn('Network error on profile save:', err);
-      window.location.href = NEXT_PAGE;         // ✅ 예외 → 진행
-      return;
     } finally {
-      btnNext.disabled = false;
+      if (isEditMode) {
+        window.location.href = `${NEXT_PAGE}?mode=edit`;
+      } else {
+        window.location.href = NEXT_PAGE;
+      }
     }
   });
 })();

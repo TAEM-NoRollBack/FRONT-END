@@ -217,6 +217,97 @@ function mountStars(el) {
 // ------------------------------
 // 유틸
 // ------------------------------
+/* === Me / Author helpers === */
+function closeCenteredMenu(wrap) {
+  return closeCenteredReviewMenu(wrap);
+}
+
+function getMe() {
+  // 실제 로그인 연동 전: localStorage 여러 키 대응
+  try {
+    const raw =
+      localStorage.getItem('me') ||
+      localStorage.getItem('profile') ||
+      localStorage.getItem('auth.user');
+    if (raw) {
+      const o = JSON.parse(raw);
+      return {
+        id: String(o.id || o.userId || o.uid || o.memberId || o.loginId || ''),
+        name: (o.name || o.nickname || o.username || '').trim(),
+      };
+    }
+  } catch {}
+  const name =
+    localStorage.getItem('myName') || localStorage.getItem('nickname') || '';
+  return { id: '', name: (name || '').trim() };
+}
+
+function normalizeStr(s) {
+  return (s || '').toString().trim().toLowerCase();
+}
+
+function isMyReview(r) {
+  const me = getMe();
+  const ids = [
+    r.user?.id,
+    r.userId,
+    r.uid,
+    r.memberId,
+    r.authorId,
+    r.author?.id,
+    r.writerId,
+  ]
+    .filter(Boolean)
+    .map(String);
+  const names = [
+    r.user?.name,
+    r.author?.name,
+    r.nickname,
+    r.name,
+    r.writer,
+    r.authorName,
+  ].filter(Boolean);
+
+  if (me.id && ids.some((id) => String(id) === String(me.id))) return true;
+  if (me.name && names.some((n) => normalizeStr(n) === normalizeStr(me.name)))
+    return true;
+  return false;
+}
+
+/* 안전한 날짜 포맷 */
+function formatKrShort(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return String(ts);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const a = String(d.getDate()).padStart(2, '0');
+  return `${y}.${m}.${a}`;
+}
+
+/* 별점 DOM (의존성 없이) */
+function starsInline(rate = 0, small = false) {
+  const cls = small ? 'stars sm' : 'stars';
+  const r = Math.max(0, Math.min(5, Number(rate) || 0));
+  return `
+    <div class="${cls}" style="--rate:${r}" aria-hidden="true">
+      <div class="row stars-bg">${starsRowHtml()}</div>
+      <div class="row stars-fill">${starsRowHtml()}</div>
+    </div>`;
+}
+
+/* 삭제 유틸 */
+function deleteReview(type, id, rid) {
+  const list = loadReviewsFor(type, id);
+  const next = list.filter((r) => r.id !== rid);
+  saveReviewsFor(type, id, next);
+  return next;
+}
+
+/* 전역 스코프 보관(렌더/액션에서 사용) */
+let CURRENT_SCOPE = null;
+let CURRENT_CTX = null;
+
 function resolveMarketForPlace(p, parentFromCtx) {
   // 1) 컨텍스트(parent) 우선
   if (parentFromCtx?.id && DEMO_MARKETS[parentFromCtx.id]) return parentFromCtx;
@@ -263,38 +354,79 @@ function saveReviewsFor(type, id, list) {
   } catch {}
 }
 
-function appendReview(type, id, review) {
+function upsertReview(type, id, review) {
   const list = loadReviewsFor(type, id);
+
+  // 내 정보(없으면 1회 생성해서 저장)
+  let me = getMe();
+  if (!me.id && !me.name) {
+    me = {
+      id: 'dev_' + Math.random().toString(36).slice(2, 10),
+      name: '내리뷰',
+      emoji: '🙂',
+    };
+    try {
+      localStorage.setItem('me', JSON.stringify(me));
+    } catch {}
+  }
+
+  // 편집이면 id로 교체
+  const incomingId = review.id || review.rid;
+  if (incomingId) {
+    const idx = list.findIndex((r) => r.id === incomingId);
+    if (idx >= 0) {
+      const prev = list[idx];
+      list[idx] = {
+        ...prev,
+        ...review,
+        id: incomingId,
+        user: {
+          id: review.user?.id || prev.user?.id || me.id,
+          name: review.user?.name || prev.user?.name || me.name,
+          emoji: review.user?.emoji || prev.user?.emoji || me.emoji || '🙂',
+        },
+        createdAt:
+          prev.createdAt ||
+          review.createdAt ||
+          new Date().toISOString().slice(0, 10),
+        helpful:
+          typeof review.helpful === 'number'
+            ? review.helpful
+            : prev.helpful || 0,
+        photos: Array.isArray(review.photos)
+          ? review.photos
+          : prev.photos || [],
+        tags: Array.isArray(review.tags) ? review.tags : prev.tags || [],
+      };
+      saveReviewsFor(type, id, list);
+      return list;
+    }
+  }
+
+  // 새 글
   const rid = 'r_' + Math.random().toString(36).slice(2, 9);
   const now = new Date();
   const payload = {
     id: rid,
     user: {
-      name: review?.user?.name || '방문자',
-      emoji: review?.user?.emoji || '🙂',
+      id: review?.user?.id || me.id,
+      name: review?.user?.name || me.name || '방문자',
+      emoji: review?.user?.emoji || me.emoji || '🙂',
     },
     rating: Number(review?.rating) || 0,
     createdAt: review?.createdAt || now.toISOString().slice(0, 10),
     helpful: Number(review?.helpful) || 0,
     text: review?.text || '',
     photos: Array.isArray(review?.photos) ? review.photos : [],
-    // 태그 정보 추가
-    tags: review?.tags || [],
+    tags: Array.isArray(review?.tags) ? review.tags : [],
   };
-  list.unshift(payload); // 최신이 위로
+  list.unshift(payload);
   saveReviewsFor(type, id, list);
   return list;
 }
 const qs = (s) => document.querySelector(s);
 const qsa = (s) => [...document.querySelectorAll(s)];
 const getParam = (name) => new URLSearchParams(location.search).get(name);
-function unpack(b64) {
-  try {
-    return JSON.parse(decodeURIComponent(escape(atob(b64))));
-  } catch {
-    return null;
-  }
-}
 // helper: URL-safe base64 decode
 function unpack(b64) {
   try {
@@ -303,25 +435,36 @@ function unpack(b64) {
     return null;
   }
 }
-
+const unpackPx = unpack;
 async function loadDetailFromParams() {
-  let marketId = getParam('market') || 'sinhung';
-  let placeId = getParam('place');
+  const params = new URLSearchParams(location.search);
 
-  // 구(id) 호환
-  const idParam = getParam('id');
-  if (!placeId && !getParam('market') && idParam) {
+  const marketParam = params.get('market') || '';
+  const placeParam = params.get('place') || '';
+  const idParam = params.get('id') || '';
+  const latParam = params.get('lat');
+  const lngParam = params.get('lng');
+  const pxPayload = unpackPx(params.get('px')) || null;
+
+  const latQ = Number(latParam);
+  const lngQ = Number(lngParam);
+  const hasQLL = !Number.isNaN(latQ) && !Number.isNaN(lngQ);
+
+  let marketId = marketParam;
+  let placeId = placeParam;
+  if (!placeId && !marketId && idParam) {
     if (DEMO_PLACES[idParam]) placeId = idParam;
     else if (DEMO_MARKETS[idParam]) marketId = idParam;
   }
 
-  // 1) 정식 placeId가 데모에 있으면 그대로
+  // 1) 데모 place로 진입
   if (placeId && DEMO_PLACES[placeId]) {
     const place = DEMO_PLACES[placeId];
     const parent =
       DEMO_MARKETS[place.market_id] ||
       DEMO_MARKETS[marketId] ||
       DEMO_MARKETS.sinhung;
+
     return {
       mode: 'place',
       place,
@@ -330,38 +473,58 @@ async function loadDetailFromParams() {
     };
   }
 
-  // 2) placeId는 있는데(foods에서 옴) 로컬 데모엔 없음 → px로 '가상 가게' 생성
+  // 2) placeId는 있는데 데모에 없음 → px/좌표 기반 가상 가게
   if (placeId) {
-    const extra = unpack(getParam('px')) || {};
-    const parent = DEMO_MARKETS[marketId] || DEMO_MARKETS.sinhung;
+    let navCtx = null;
+    try {
+      const raw = localStorage.getItem('navCtx:' + placeId);
+      if (raw) navCtx = JSON.parse(raw);
+    } catch {}
+    const parent =
+      DEMO_MARKETS[marketId] ||
+      (pxPayload?.id && DEMO_MARKETS[pxPayload.id]) ||
+      DEMO_MARKETS.sinhung;
 
-    const plat = Number(getParam('lat')); // 혹시 쿼리로 따로 보낸 경우 대비
-    const plng = Number(getParam('lng'));
+    const vName =
+      pxPayload?.name || params.get('pname') || navCtx?.place?.name || '가게';
+
+    const vLat = hasQLL
+      ? latQ
+      : typeof pxPayload?.lat === 'number'
+      ? pxPayload.lat
+      : typeof navCtx?.place?.lat === 'number'
+      ? navCtx.place.lat
+      : parent.lat;
+
+    const vLng = hasQLL
+      ? lngQ
+      : typeof pxPayload?.lng === 'number'
+      ? pxPayload.lng
+      : typeof navCtx?.place?.lng === 'number'
+      ? navCtx.place.lng
+      : parent.lng;
 
     const virtual = {
-      id: placeId, // 전달된 placeId 그대로 사용(리뷰 키 분리)
+      id: placeId,
       market_id: parent.id,
-      name: extra.name || getParam('pname') || '가게',
-      lat: !Number.isNaN(plat)
-        ? plat
-        : typeof extra.lat === 'number'
-        ? extra.lat
-        : parent.lat,
-      lng: !Number.isNaN(plng)
-        ? plng
-        : typeof extra.lng === 'number'
-        ? extra.lng
-        : parent.lng,
-      rating: typeof extra.rating === 'number' ? extra.rating : 0,
+      name: vName,
+      lat: vLat,
+      lng: vLng,
+      rating: typeof pxPayload?.rating === 'number' ? pxPayload.rating : 0,
       ratingCount:
-        typeof extra.ratingCount === 'number' ? extra.ratingCount : 0,
-      addr: extra.addr || parent.addr || '',
+        typeof pxPayload?.ratingCount === 'number' ? pxPayload.ratingCount : 0,
+      addr: pxPayload?.addr || parent.addr || '',
       phone: '',
-      hours: extra.hours || '',
+      hours: pxPayload?.hours || '',
       notes: `소속 시장: ${parent.name}`,
-      photos: Array.isArray(extra.photos) ? extra.photos : [],
+      photos: Array.isArray(pxPayload?.photos) ? pxPayload.photos : [],
       hero: [],
     };
+
+    try {
+      localStorage.removeItem('navCtx:' + placeId);
+    } catch {}
+
     return {
       mode: 'place',
       place: virtual,
@@ -370,12 +533,14 @@ async function loadDetailFromParams() {
     };
   }
 
-  // 3) 홈/다른 페이지에서 pname+lat/lng만 넘어온 경우(기존 처리 유지)
-  const pname = getParam('pname');
-  const plat = Number(getParam('lat'));
-  const plng = Number(getParam('lng'));
-  if (pname && !Number.isNaN(plat) && !Number.isNaN(plng)) {
-    const parent = DEMO_MARKETS[marketId] || DEMO_MARKETS.sinhung;
+  // 3) pname + 좌표 진입(레거시)
+  const pname = params.get('pname');
+  if (pname && hasQLL) {
+    const parent =
+      DEMO_MARKETS[marketId] ||
+      (pxPayload?.id && DEMO_MARKETS[pxPayload.id]) ||
+      DEMO_MARKETS.sinhung;
+
     const virtual = {
       id:
         'v_' +
@@ -384,8 +549,8 @@ async function loadDetailFromParams() {
           .slice(0, 10),
       market_id: parent.id,
       name: pname,
-      lat: plat,
-      lng: plng,
+      lat: latQ,
+      lng: lngQ,
       rating: 0,
       ratingCount: 0,
       addr: parent.addr || '',
@@ -404,14 +569,18 @@ async function loadDetailFromParams() {
   }
 
   // 4) 기본: 시장 상세
-  const market = DEMO_MARKETS[marketId] || DEMO_MARKETS.sinhung;
+  const baseMarket =
+    DEMO_MARKETS[marketId] ||
+    (pxPayload?.id && DEMO_MARKETS[pxPayload.id]) ||
+    DEMO_MARKETS.sinhung;
+
+  const market = hasQLL ? { ...baseMarket, lat: latQ, lng: lngQ } : baseMarket;
+
   return { mode: 'market', market, scope: { type: 'market', id: market.id } };
 }
 
-async function loadMarketReviews(/* marketId */) {
-  return DEMO_REVIEWS.slice().sort(
-    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-  );
+function loadMarketReviews(marketId) {
+  return loadReviewsFor('market', marketId);
 }
 // 🔧 Kakao Map deeplink helper
 function openKakaoMap({ name, lat, lng, level = 3, mode = 'map' }) {
@@ -572,7 +741,7 @@ function renderReviewHeader(reviews) {
     <svg xmlns="http://www.w3.org/2000/svg" width="7" height="12" viewBox="0 0 7 12" fill="none" aria-hidden="true">
       <path fill-rule="evenodd" clip-rule="evenodd" d="M5.21857 6L7.98631e-09 0.999884L1.04357 4.32946e-07L6.78392 5.50006C6.92228 5.63267 7 5.8125 7 6C7 6.18751 6.92228 6.36734 6.78392 6.49994L1.04356 12L-8.66262e-07 11.0001L5.21857 6Z" fill="black"/>
     </svg>`;
-
+  mountStars(qs('#stars2'));
   if (!reviews?.length) {
     qs('#stars2').style.setProperty('--rate', 0);
     qs('#r2').textContent = '0.0';
@@ -586,13 +755,8 @@ function renderReviewHeader(reviews) {
     reviews.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) /
     reviews.length;
 
-  qs('#stars2').innerHTML = `
-    <div class="row stars-bg">${starsRowHtml()}</div>
-    <div class="row stars-fill">${starsRowHtml()}</div>
-  `;
   qs('#stars2').style.setProperty('--rate', avg);
   qs('#r2').textContent = avg.toFixed(1);
-
   qs('#r2c').innerHTML = `리뷰 ${reviews.length}개 ${arrowSvg}`;
   qs('#r2c').style.cursor = 'pointer';
   qs('#r2c').setAttribute('title', '모든 방문자 사진 보기');
@@ -660,71 +824,280 @@ function sortReviews(list, sortKey) {
 
 // 리뷰 카드 렌더
 function renderReviews(list, sortKey = currentSort) {
-  const area = qs('#reviewsList');
+  const area = document.querySelector('#reviewsList');
+  if (!area) return;
   area.innerHTML = '';
 
   const sorted = sortReviews(list, sortKey);
+
+  // 외부 클릭 시 열린 메뉴 닫기
+  const closeAllMenus = () =>
+    document
+      .querySelectorAll('.review-menu.show')
+      .forEach((m) => m.classList.remove('show'));
+
+  document.addEventListener(
+    'click',
+    (e) => {
+      if (
+        e.target.closest('.review-menu') ||
+        e.target.closest('.btn-meatballs')
+      )
+        return;
+      closeAllMenus();
+    },
+    { once: true }
+  );
 
   sorted.forEach((r) => {
     const art = document.createElement('article');
     art.className = 'review';
 
+    // 헤드
     const head = document.createElement('div');
     head.className = 'head';
     head.innerHTML = `
       <div class="avatar">${r.user?.emoji || '🙂'}</div>
-      <div class="meta"><b>${r.user?.name || '방문자'}</b></div>
+      <div class="meta">
+        <b>${r.user?.name || r.author?.name || r.nickname || '방문자'}</b>
+      </div>
       <span class="date">${formatKrShort(r.createdAt)}</span>
     `;
 
-    const photos = r.photos || [];
-    if (photos.length) {
-      const picsWrap = document.createElement('div');
-      picsWrap.className = 'pics4';
-      const maxShow = 4;
+    // … 버튼 (내 리뷰만 보이게)
+    const mine = isMyReview(r);
+    const kebab = document.createElement('button');
+    kebab.className = 'btn-meatballs';
+    kebab.setAttribute('aria-label', '리뷰 메뉴');
+    kebab.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="6" cy="12" r="2" fill="#C9C9C9"/>
+        <circle cx="12" cy="12" r="2" fill="#C9C9C9"/>
+        <circle cx="18" cy="12" r="2" fill="#C9C9C9"/>
+      </svg>`;
+    kebab.style.display = mine ? 'block' : 'none';
+    head.appendChild(kebab);
 
-      photos.slice(0, maxShow).forEach((url, idx) => {
+    // 메뉴 시트
+    const menu = document.createElement('div');
+    menu.className = 'review-menu';
+    menu.innerHTML = `
+      <div class="menu-group" role="menu">
+        <button class="menu-item js-edit"   role="menuitem">수정하기</button>
+        <button class="menu-item js-delete" role="menuitem">삭제하기</button>
+        <button class="menu-item js-share"  role="menuitem">공유하기</button>
+      </div>
+      <button class="menu-cancel js-cancel">취소하기</button>
+    `;
+    head.appendChild(menu);
+
+    // 사진
+    const photos = Array.isArray(r.photos) ? r.photos : [];
+    if (photos.length) {
+      const pics = document.createElement('div');
+      pics.className = 'pics4';
+      photos.slice(0, 4).forEach((url, i) => {
         const cell = document.createElement('div');
         cell.className = 'ph';
         cell.style.backgroundImage = `url('${url}')`;
-
-        if (idx === maxShow - 1 && photos.length > maxShow) {
-          const moreCnt = photos.length - maxShow;
+        if (i === 3 && photos.length > 4) {
           cell.classList.add('more');
-          cell.dataset.more = `+${moreCnt}`;
+          cell.dataset.more = `+${photos.length - 4}`;
         }
         cell.addEventListener('click', () => openPhotoModal(photos));
-        picsWrap.appendChild(cell);
+        pics.appendChild(cell);
       });
       art.appendChild(head);
-      art.appendChild(picsWrap);
+      art.appendChild(pics);
     } else {
       art.appendChild(head);
     }
 
+    // 별점/텍스트
     const rateRow = document.createElement('div');
     rateRow.className = 'rate-row';
-
-    // 태그가 있으면 요청된 형식의 문자열로 만듭니다.
-    const tagsHtml = r.tags?.length
-      ? `<span class="review-tags">${r.tags.join(' | ')}</span>`
-      : '';
-
     rateRow.innerHTML = `
-      <div style="display:flex; align-items:center; gap:6px;">
-        ${starsHtml(r.rating, true)}
+      <div style="display:flex;align-items:center;gap:6px;">
+        ${starsInline(r.rating, true)}
       </div>
-      ${tagsHtml}
+      ${
+        r.tags?.length
+          ? `<span class="review-tags">${r.tags.join(' | ')}</span>`
+          : ''
+      }
     `;
-
     const txt = document.createElement('p');
     txt.className = 'text';
     txt.textContent = r.text || '';
 
     art.appendChild(rateRow);
     art.appendChild(txt);
-
     area.appendChild(art);
+
+    // === 액션 바인딩(내 리뷰만) ===
+    if (mine) {
+      kebab.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // 나 말고 열린 메뉴 닫기
+        document.querySelectorAll('.review-menu').forEach((m) => {
+          if (m !== menu) closeCenteredMenu(m);
+        });
+        openCenteredMenu(menu); // ✅ 중앙 모달로 열기
+      });
+
+      menu
+        .querySelector('.js-cancel')
+        .addEventListener('click', () => menu.classList.remove('show'));
+
+      menu.querySelector('.js-edit').addEventListener('click', () => {
+        const scope = CURRENT_SCOPE || { type: 'place', id: '' };
+        const rev = btoa(unescape(encodeURIComponent(JSON.stringify(r)))); // 리뷰 프리필
+
+        const u = new URL('review.html', location.href);
+        u.searchParams.set('type', scope.type);
+        u.searchParams.set('id', scope.id);
+        u.searchParams.set('rid', r.id);
+        u.searchParams.set('rev', rev); // ✅ 리뷰 프리필은 rev
+
+        // ✅ 컨텍스트는 그대로 보존해서 전달
+        ['px', 'market', 'lat', 'lng', 'pname'].forEach((k) => {
+          const v = getParam(k);
+          if (v !== null && v !== '') u.searchParams.set(k, v);
+        });
+
+        location.href = u.toString();
+      });
+
+      menu.querySelector('.js-delete').addEventListener('click', () => {
+        const scope = CURRENT_SCOPE || { type: 'place', id: '' };
+        if (!confirm('이 리뷰를 삭제할까요?')) return;
+        const next = loadReviewsFor(scope.type, scope.id).filter(
+          (x) => x.id !== r.id
+        );
+        saveReviewsFor(scope.type, scope.id, next);
+        REVIEWS_RAW = next;
+
+        try {
+          if (
+            typeof applyReviewAggregateToContext === 'function' &&
+            CURRENT_CTX
+          ) {
+            applyReviewAggregateToContext(CURRENT_CTX);
+            if (CURRENT_CTX.mode === 'place')
+              renderPlace(CURRENT_CTX.place, CURRENT_CTX.parent);
+            else renderMarket(CURRENT_CTX.market);
+          }
+        } catch {}
+        renderReviewHeader(REVIEWS_RAW);
+        renderUgcReel(REVIEWS_RAW);
+        renderReviews(REVIEWS_RAW, currentSort);
+      });
+
+      menu.querySelector('.js-share').addEventListener('click', async () => {
+        const url = new URL(location.href);
+        url.hash = r.id;
+        const link = url.toString();
+        try {
+          if (navigator.share)
+            await navigator.share({ title: '리뷰 공유', url: link });
+          else {
+            await navigator.clipboard?.writeText(link);
+            alert('링크가 복사되었습니다.');
+          }
+        } catch {}
+        menu.classList.remove('show');
+      });
+    }
+  });
+}
+// --- 중앙 판넬 열기/닫기 유틸 --- //
+function openCenteredReviewMenuFrom(btn) {
+  closeCenteredReviewMenu(); // 하나만 유지
+
+  const card = btn.closest('.review');
+  const srcMenu = card?.querySelector('.review-menu');
+  const srcItems = srcMenu ? [...srcMenu.querySelectorAll('.menu-item')] : [];
+
+  const wrap = document.createElement('div');
+  wrap.className = 'review-menu centered show';
+  wrap.innerHTML = `
+    <div class="review-menu-overlay" data-close="1"></div>
+    <div class="menu-panel">
+      <div class="menu-group">
+        <button class="menu-item" data-act="edit">수정하기</button>
+        <button class="menu-item" data-act="delete">삭제하기</button>
+        <button class="menu-item" data-act="share">공유하기</button>
+      </div>
+      <button class="menu-cancel" data-close="1">취소하기</button>
+    </div>
+  `;
+  document.body.appendChild(wrap);
+  document.body.style.overflow = 'hidden';
+
+  // 오버레이/취소 클릭 → 닫기
+  wrap.addEventListener('click', (e) => {
+    if (e.target.closest('[data-close]')) {
+      closeCenteredReviewMenu(wrap);
+      return;
+    }
+    const act = e.target.closest('.menu-item')?.dataset.act;
+    if (!act) return;
+    const idx = { edit: 0, delete: 1, share: 2 }[act];
+    srcItems[idx]?.click(); // 기존 카드 내 로직 재사용
+    closeCenteredReviewMenu(wrap); // 닫기
+  });
+
+  // ESC로 닫기
+  const onEsc = (ev) =>
+    ev.key === 'Escape' &&
+    (closeCenteredReviewMenu(wrap),
+    window.removeEventListener('keydown', onEsc));
+  window.addEventListener('keydown', onEsc);
+}
+// === 호환용 별칭 (legacy 함수명) ===
+// 예전 코드: openCenteredMenu(menuEl) → 새 중앙 모달 열기로 위임
+function openCenteredMenu(menuEl) {
+  const btn = menuEl?.closest('.review')?.querySelector('.btn-meatballs');
+  if (btn) openCenteredReviewMenuFrom(btn);
+}
+
+// 예전 코드: closeCenteredMenu(any) → 새 닫기 함수로 위임
+function closeCenteredMenu(/* any */) {
+  return closeCenteredReviewMenu();
+}
+
+// 리뷰 리스트 위임 바인딩 (렌더가 다시 되어도 유지)
+function wireCenteredReviewMenu() {
+  const list = document.getElementById('reviewsList');
+  if (!list) return;
+  list.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-meatballs');
+    if (btn) {
+      e.preventDefault();
+      openCenteredReviewMenuFrom(btn);
+    }
+  });
+}
+
+function closeCenteredReviewMenu(wrap) {
+  // 이미 열린 모달이 있으면 닫기
+  if (!wrap) wrap = document.querySelector('.review-menu.centered');
+  try {
+    wrap?.remove();
+  } catch {}
+  document.body.style.overflow = '';
+}
+
+// 리뷰 리스트 위임 바인딩: 새로 렌더되어도 계속 동작
+function wireCenteredReviewMenu() {
+  const list = document.getElementById('reviewsList');
+  if (!list) return;
+  list.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-meatballs');
+    if (btn) {
+      e.preventDefault();
+      openCenteredReviewMenuFrom(btn);
+    }
   });
 }
 
@@ -792,17 +1165,25 @@ function wireActions(detail, scope) {
       } else if (act === 'review') {
         const itemName = detail.name;
         const px = getParam('px'); // 현재 URL에서 'px' 파라미터를 가져옵니다.
-
+        try {
+          localStorage.setItem(
+            'navCtx:' + scope.id, // place/market 공통 id
+            JSON.stringify({
+              type: scope.type,
+              place: scope.type === 'place' ? detail : null,
+              market: scope.type === 'market' ? detail : null,
+              parent: resolveMarketForPlace(detail, null),
+            })
+          );
+        } catch {}
         // URL을 조립합니다.
         let reviewUrl = `review.html?type=${scope.type}&id=${
           scope.id
         }&name=${encodeURIComponent(itemName)}`;
-
         // 만약 px 파라미터가 있었다면, 리뷰 페이지 URL에도 추가해줍니다.
         if (px) {
           reviewUrl += `&px=${px}`;
         }
-
         location.href = reviewUrl;
       } else if (act === 'save') {
         alert('저장 처리 (연동 예정)');
@@ -815,7 +1196,9 @@ function wireActions(detail, scope) {
     });
   });
 
-  qs('.btn-back')?.addEventListener('click', () => history.back());
+  qs('.btn-back')?.addEventListener('click', () => {
+    window.location.href = '../mainpage/home.html';
+  });
 
   qs('#btnMap')?.addEventListener('click', () => {
     const { name, lat, lng } = detail;
@@ -873,60 +1256,71 @@ document.addEventListener('DOMContentLoaded', () => {
 // ------------------------------
 // market.js 파일의 기존 init 함수를 아래 코드로 전체 교체하세요.
 
-(async function init() {
-  // 1. 먼저 현재 페이지의 컨텍스트(시장/가게 정보)를 로드합니다.
-  const ctx = await loadDetailFromParams();
+// === 평균 반영 유틸: 현재 스코프 리뷰로 rating/ratingCount 덮어쓰기 ===
+function applyReviewAggregateToContext(ctx) {
+  const list = loadReviewsFor(ctx.scope.type, ctx.scope.id);
+  if (list.length > 0) {
+    const count = list.length;
+    const avg = list.reduce((s, r) => s + (Number(r.rating) || 0), 0) / count;
 
-  // 2. localStorage에 새 리뷰가 있는지 확인합니다.
-  const newReviewRaw = localStorage.getItem('newReview');
-  if (newReviewRaw) {
-    const newReview = JSON.parse(newReviewRaw);
-    const { type, id, payload } = newReview;
-
-    // 현재 보고 있는 페이지의 리뷰가 맞는지 확인 후 진행합니다.
-    if (type === ctx.scope.type && id === ctx.scope.id) {
-      // 3. 새 리뷰를 저장소에 추가합니다.
-      appendReview(type, id, payload);
-
-      // 4. 모든 리뷰를 다시 불러와 평점을 재계산합니다.
-      const allReviews = loadReviewsFor(type, id);
-      if (allReviews.length > 0) {
-        const newCount = allReviews.length;
-        const newAverage =
-          allReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / newCount;
-
-        // 5. 현재 컨텍스트(ctx) 객체의 평점 정보를 직접 갱신합니다.
-        // 이렇게 해야 잠시 후 render 함수가 새 평점을 사용합니다.
-        if (ctx.mode === 'market') {
-          ctx.market.rating = newAverage;
-          ctx.market.ratingCount = newCount;
-        } else if (ctx.mode === 'place') {
-          ctx.place.rating = newAverage;
-          ctx.place.ratingCount = newCount;
-        }
+    if (ctx.mode === 'market') {
+      ctx.market.rating = avg;
+      ctx.market.ratingCount = count;
+      // 선택: DEMO에 있는 원천도 세션 동안 덮어주기(다른 코드에서 참조할 수 있으니)
+      if (DEMO_MARKETS[ctx.market.id]) {
+        DEMO_MARKETS[ctx.market.id].rating = avg;
+        DEMO_MARKETS[ctx.market.id].ratingCount = count;
+      }
+    } else {
+      ctx.place.rating = avg;
+      ctx.place.ratingCount = count;
+      if (DEMO_PLACES[ctx.place.id]) {
+        DEMO_PLACES[ctx.place.id].rating = avg;
+        DEMO_PLACES[ctx.place.id].ratingCount = count;
       }
     }
-    // 6. 처리했으므로 임시 리뷰 데이터를 삭제합니다.
-    localStorage.removeItem('newReview');
+  }
+  return list; // 호출부에서 REVIEWS_RAW로 재사용
+}
+
+// === init: 전체 교체 ===
+(async function init() {
+  // 1) 컨텍스트 로드
+  const ctx = await loadDetailFromParams();
+  CURRENT_SCOPE = ctx.scope;
+  CURRENT_CTX = ctx;
+  // 2) 리뷰 전달(작성 후 돌아옴) 처리
+  const newReviewRaw = localStorage.getItem('newReview');
+  if (newReviewRaw) {
+    try {
+      const { type, id, payload } = JSON.parse(newReviewRaw);
+      if (type === ctx.scope.type && id === ctx.scope.id) {
+        upsertReview(type, id, payload); // ← 여기만 변경
+      }
+    } finally {
+      localStorage.removeItem('newReview');
+    }
   }
 
-  // 7. 갱신된 정보(ctx)로 화면을 렌더링합니다.
-  if (ctx.mode === 'place') {
-    renderPlace(ctx.place, ctx.parent);
-  } else {
-    renderMarket(ctx.market);
-  }
+  // 3) ★ 항상 리뷰로 평균 재계산해서 ctx에 주입 (처음 진입/재진입 모두 반영)
+  REVIEWS_RAW = applyReviewAggregateToContext(ctx);
 
+  // 4) 렌더
+  if (ctx.mode === 'place') renderPlace(ctx.place, ctx.parent);
+  else renderMarket(ctx.market);
+
+  // 5) 지도/액션/리뷰 UI
   await renderMapForContext(ctx);
   wireActions(ctx.mode === 'place' ? ctx.place : ctx.market, ctx.scope);
 
-  REVIEWS_RAW = loadReviewsFor(ctx.scope.type, ctx.scope.id);
   renderReviewHeader(REVIEWS_RAW);
   renderUgcReel(REVIEWS_RAW);
   renderReviews(REVIEWS_RAW, currentSort);
   wireFilters();
   wireHeaderOpenAll(REVIEWS_RAW);
+  wireCenteredReviewMenu();
 })();
+
 /* === Kakao Map 로더 & 지도 렌더 === */
 // home.js와 같은 앱키 사용
 const KAKAO_JS_KEY =
@@ -992,11 +1386,31 @@ async function renderMapForContext(ctx) {
   const level = isPlace ? 3 : 4;
 
   const map = new kakao.maps.Map(mapDiv, { center: LL(lat, lng), level });
-  const marker = new kakao.maps.Marker({ map, position: LL(lat, lng) });
+
   const name = isPlace ? ctx.place.name : ctx.market.name;
-  new kakao.maps.InfoWindow({
-    content: `<div style="padding:4px 6px;font-size:12px">${name}</div>`,
-  }).open(map, marker);
+  const kind = ctx.mode; // 'market' 또는 'place'
+  const color = kind === 'market' ? '#59F1FF' : '#FF83A2'; // 시장: 하늘색, 가게: 핑크색
+
+  const content = document.createElement('div');
+  content.className = `map-label ${kind}`;
+  content.innerHTML = `
+    <svg class="pin" xmlns="http://www.w3.org/2000/svg" width="19" height="28" viewBox="0 0 19 28" aria-hidden="true" style="color:${color}">
+      <path d="M9.5 13.3C9.94556 13.3 10.3868 13.2095 10.7984 13.0336C11.21 12.8577 11.5841 12.5999 11.8991 12.2749C12.2142 11.9499 12.4641 11.564 12.6346 11.1394C12.8051 10.7148 12.8929 10.2596 12.8929 9.8C12.8929 8.87174 12.5354 7.9815 11.8991 7.32513C11.2628 6.66875 10.3998 6.3 9.5 6.3C8.60016 6.3 7.73717 6.66875 7.10089 7.32513C6.4646 7.9815 6.10714 8.87174 6.10714 9.8C6.10714 10.2596 6.1949 10.7148 6.36541 11.1394C6.53591 11.564 6.78583 11.9499 7.10089 12.2749C7.73717 12.9313 8.60016 13.3 9.5 13.3ZM9.5 0C14.7386 0 19 4.382 19 9.8C19 17.15 9.5 28 9.5 28C9.5 28 0 17.15 0 9.8C0 7.20088 1.00089 4.70821 2.78249 2.87035C4.56408 1.0325 6.98044 0 9.5 0Z" fill="currentColor"/>
+    </svg>
+    <span class="badge">${name}</span>
+  `;
+
+  new kakao.maps.CustomOverlay({
+    position: new kakao.maps.LatLng(lat, lng),
+    content: content,
+    yAnchor: 1, // 핀의 뾰족한 끝에 위치하도록 설정
+  });
+  new kakao.maps.CustomOverlay({
+    position: LL(lat, lng),
+    content: content,
+    yAnchor: 1,
+    zIndex: 3,
+  }).setMap(map);
 
   // [지도보기] 버튼: 위치 섹션으로 스크롤 + 해당 좌표로 리센터(줌 재설정)
   const btn = document.getElementById('btnMap');
@@ -1015,11 +1429,6 @@ async function renderMapForContext(ctx) {
   // 디버깅/재사용 위해 map 참조 저장(선택)
   mapDiv._kmap = map;
 }
-function openKakaoMap({ name, lat, lng, level = 3, mode = 'map' }) {
-  const base = 'https://map.kakao.com/link';
-  const url =
-    mode === 'to'
-      ? `${base}/to/${encodeURIComponent(name)},${lat},${lng}` // 길찾기
-      : `${base}/map/${encodeURIComponent(name)},${lat},${lng},${level}`; // 지도보기(줌 포함)
-  window.open(url, '_blank', 'noopener');
-}
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted && CURRENT_CTX) renderMapForContext(CURRENT_CTX);
+});

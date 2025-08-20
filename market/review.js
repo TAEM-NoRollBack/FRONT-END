@@ -1,12 +1,51 @@
-const params = new URLSearchParams(location.search);
-const reviewType = params.get('type');
-const reviewId = params.get('id');
-const reviewName = decodeURIComponent(params.get('name') || '리뷰');
-// 타이틀 버튼
+// ==============================
+// review.js (전체 교체)
+// ==============================
+
+// DOM refs
 const titleElement = document.querySelector('.page-title strong');
-if (titleElement) {
-  titleElement.textContent = reviewName;
+const starWrap = document.getElementById('stars');
+const ratingInput = document.getElementById('rating');
+const memo = document.getElementById('memo');
+const count = document.getElementById('count');
+const uploadBox = document.getElementById('uploadBox');
+const inputFile = document.getElementById('file');
+const thumbs = document.getElementById('thumbs');
+const btnSubmit = document.getElementById('btnSubmit');
+
+// 로그인 정보( market.js와 동일 로직 )
+function getMe() {
+  try {
+    const raw =
+      localStorage.getItem('me') ||
+      localStorage.getItem('profile') ||
+      localStorage.getItem('auth.user');
+    if (raw) {
+      const o = JSON.parse(raw);
+      return {
+        id: String(o.id || o.userId || o.uid || o.memberId || o.loginId || ''),
+        name: (o.name || o.nickname || o.username || '').trim(),
+        emoji: o.emoji || '',
+      };
+    }
+  } catch {}
+  const name =
+    localStorage.getItem('myName') || localStorage.getItem('nickname') || '';
+  return { id: '', name: (name || '').trim(), emoji: '' };
 }
+
+// URL 파라미터
+const params = new URLSearchParams(location.search);
+const reviewType = params.get('type'); // 'market' | 'place'
+const reviewId = params.get('id'); // marketId | placeId
+const reviewName = decodeURIComponent(params.get('name') || '리뷰');
+const rid = params.get('rid'); // 편집이면 존재
+const revRaw = params.get('rev'); // 가상가게 컨텍스트(있을 수 있음)
+
+// 타이틀
+if (titleElement) titleElement.textContent = reviewName;
+
+// 상단 버튼
 document
   .querySelector('.btn-back')
   ?.addEventListener('click', () => history.back());
@@ -14,10 +53,64 @@ document.querySelector('.btn-close')?.addEventListener('click', () => {
   if (window.close) window.close();
   else history.back();
 });
+
 console.log('review.js loaded');
-// 별점: 클릭 시 채워짐
-const starWrap = document.getElementById('stars');
-const ratingInput = document.getElementById('rating');
+
+// ------------------------------
+// 편집 프리필
+// ------------------------------
+function safeAtob(b64) {
+  try {
+    return atob(b64.replace(/-/g, '+').replace(/_/g, '/'));
+  } catch {
+    return '';
+  }
+}
+const prev = (() => {
+  if (!rid || !revRaw) return null;
+  try {
+    return JSON.parse(decodeURIComponent(escape(safeAtob(revRaw))));
+  } catch {
+    return null;
+  }
+})();
+
+if (rid && prev) {
+  // 별점
+  const val = Number(prev.rating) || 0;
+  ratingInput.value = val;
+  [...starWrap.querySelectorAll('.star')].forEach((s) => {
+    s.classList.toggle('active', Number(s.dataset.value) <= val);
+  });
+
+  // 본문
+  memo.value = prev.text || '';
+  count.textContent = memo.value.length;
+
+  // 기존 사진(읽기전용 미리보기)
+  thumbs.innerHTML = '';
+  (prev.photos || []).slice(0, 3).forEach((url, index) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'thumb';
+    wrap.innerHTML = `
+      <img src="${url}" alt="이전 사진">
+      ${
+        index === 0
+          ? `<button type="button" class="add-more" aria-label="사진 추가">+</button>`
+          : ''
+      }
+    `;
+    wrap
+      .querySelector('.add-more')
+      ?.addEventListener('click', () => inputFile.click());
+    thumbs.appendChild(wrap);
+  });
+  uploadBox.style.display = prev.photos && prev.photos.length ? 'none' : 'flex';
+}
+
+// ------------------------------
+// 별점/칩/업로드/글자수
+// ------------------------------
 starWrap.addEventListener('click', (e) => {
   const btn = e.target.closest('.star');
   if (!btn) return;
@@ -29,7 +122,6 @@ starWrap.addEventListener('click', (e) => {
   syncSubmit();
 });
 
-// 칩 선택
 function setupChips(root) {
   root.addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
@@ -52,12 +144,6 @@ setupChips(document.getElementById('waitTime'));
 setupChips(document.getElementById('purposes'));
 
 // 업로드
-// 업로드
-// 업로드
-const uploadBox = document.getElementById('uploadBox');
-const inputFile = document.getElementById('file');
-const thumbs = document.getElementById('thumbs');
-
 uploadBox.addEventListener('click', () => inputFile.click());
 
 inputFile.addEventListener('change', () => {
@@ -89,32 +175,26 @@ inputFile.addEventListener('change', () => {
       }
     `;
 
-    const delButton = wrap.querySelector('.del');
-    delButton.addEventListener('click', () => {
-      const updatedFiles = [...inputFile.files];
-      updatedFiles.splice(files.indexOf(file), 1);
+    wrap.querySelector('.del').addEventListener('click', () => {
+      const updated = [...inputFile.files];
+      updated.splice(files.indexOf(file), 1);
       const dt = new DataTransfer();
-      updatedFiles.forEach((f) => dt.items.add(f));
+      updated.forEach((f) => dt.items.add(f));
       inputFile.files = dt.files;
       inputFile.dispatchEvent(new Event('change'));
     });
 
-    const addMoreButton = wrap.querySelector('.add-more');
-    if (addMoreButton) {
-      addMoreButton.addEventListener('click', () => inputFile.click());
-    }
-
+    wrap
+      .querySelector('.add-more')
+      ?.addEventListener('click', () => inputFile.click());
     thumbs.appendChild(wrap);
   });
 
   uploadBox.style.display = files.length > 0 ? 'none' : 'flex';
   syncSubmit();
 });
-// 글자수 & 제출 가능
-const memo = document.getElementById('memo');
-const count = document.getElementById('count');
-const btnSubmit = document.getElementById('btnSubmit');
 
+// 글자수
 memo.addEventListener('input', () => {
   count.textContent = memo.value.length;
   syncSubmit();
@@ -128,11 +208,9 @@ function syncSubmit() {
   btnSubmit.disabled = !ready;
 }
 
-// 제출(Mock)
-// 기존 document.getElementById('reviewForm').addEventListener(...) 부분을
-// 아래 코드로 전체 교체하세요.
-
-// 파일(이미지)을 Base64 데이터 URL로 읽는 헬퍼 함수
+// ------------------------------
+// 제출
+// ------------------------------
 function readFileAsDataURL(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -142,53 +220,70 @@ function readFileAsDataURL(file) {
   });
 }
 
-// 제출
 document.getElementById('reviewForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // 사진 파일들을 DataURL로 변환 (localStorage에 저장 가능하도록)
+  // 새로 올린 파일들을 DataURL로
   const photoPromises = [...inputFile.files].map(readFileAsDataURL);
   const photoDataUrls = await Promise.all(photoPromises);
 
-  // 제출할 전체 데이터 구성
+  // 편집이면 기존 사진 유지(새 업로드 없으면)
+  const photosToSave = photoDataUrls.length
+    ? photoDataUrls
+    : rid && prev
+    ? prev.photos || []
+    : [];
+
+  // 작성자(없으면 1회 생성)
+  let me = getMe();
+  if (!me.id && !me.name) {
+    me = {
+      id: 'dev_' + Math.random().toString(36).slice(2, 10),
+      name: '내리뷰',
+      emoji: '🙂',
+    };
+    try {
+      localStorage.setItem('me', JSON.stringify(me));
+    } catch {}
+  }
+
   const payload = {
-    rating: Number(ratingInput.value),
+    id: rid || undefined, // 있으면 업서트(수정)
+    user: { id: me.id, name: me.name || '방문자', emoji: me.emoji || '🙂' },
+    rating: Number(ratingInput.value) || 0,
     text: memo.value.trim(),
-    photos: photoDataUrls,
+    photos: photosToSave,
     tags: [
       pickSingle('useType'),
       `대기시간:${pickSingle('waitTime')}`,
       ...pickMulti('purposes'),
-    ].filter(Boolean), // 빈 태그는 제외
+    ].filter(Boolean),
+
+    // 호환 필드
+    authorId: me.id,
+    authorName: me.name,
+    nickname: me.name,
   };
 
-  // localStorage에 임시 저장
+  // 상세로 전달
   localStorage.setItem(
     'newReview',
-    JSON.stringify({
-      type: reviewType,
-      id: reviewId,
-      payload: payload,
-    })
+    JSON.stringify({ type: reviewType, id: reviewId, payload })
   );
 
-  // 원래의 상세 페이지로 돌아가기
-  // market.html?id=sinhung 또는 market.html?place=p1 과 같은 형태로 복귀
-  const targetUrl = new URL(
-    'market.html',
-    location.origin + location.pathname.replace('review.html', '')
-  );
+  // 컨텍스트 파라미터 보존해서 복귀(가상가게/비마커 가게도 이름/좌표 유지)
+  const targetUrl = new URL('market.html', location.href);
   targetUrl.searchParams.set(reviewType, reviewId);
-  location.href = targetUrl.toString();
-  const px = params.get('px');
-  // px 파라미터가 있었다면, 돌아갈 URL에도 똑같이 추가해줍니다.
-  if (px) {
-    targetUrl.searchParams.set('px', px);
-  }
+  ['px', 'market', 'lat', 'lng', 'pname'].forEach((k) => {
+    const v = params.get(k);
+    if (v !== null && v !== '') targetUrl.searchParams.set(k, v);
+  });
 
-  location.href = targetUrl.toString();
+  // review.html 히스토리에 남지 않게
+  location.replace(targetUrl.toString());
 });
 
+// 선택된 칩 읽기
 function pickSingle(id) {
   const sel = document.querySelector('#' + id + ' .chip[data-selected="true"]');
   return sel ? sel.textContent.trim() : '';

@@ -176,19 +176,25 @@ function pack(obj) {
 function buildPlaceHref(p, marketId) {
   const u = new URL('market.html', location.href);
   u.searchParams.set('market', marketId);
-  u.searchParams.set('place', p.id); // 정식 placeId 전달
+  u.searchParams.set('place', p.id);
 
-  // 상세 렌더용 추가 정보 패킹(없으면 비워도 OK)
   const extras = {
     name: p.name,
     lat: p.lat,
     lng: p.lng,
     rating: p.rating,
-    ratingCount: p.reviews, // foods는 reviews 필드 → 상세는 ratingCount
+    ratingCount: p.reviews,
     photos: (p.photos || []).slice(0, 6),
     addr: p.addr || '',
     hours: p.openAt && p.closeAt ? `${p.openAt} ~ ${p.closeAt}` : '',
   };
+
+  // ✅ 좌표를 쿼리에도 명시
+  if (typeof p.lat === 'number' && typeof p.lng === 'number') {
+    u.searchParams.set('lat', p.lat);
+    u.searchParams.set('lng', p.lng);
+  }
+
   u.searchParams.set('px', pack(extras));
   return u.toString();
 }
