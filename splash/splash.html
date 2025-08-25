@@ -3,250 +3,677 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>시장백서 스플래시</title>
+    <title>시장백서</title>
     <style>
-      body {
+      * {
         margin: 0;
         padding: 0;
-        background: #000;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕',
+          'Helvetica Neue', Arial, sans-serif;
+        background: #f5f3f0;
         overflow: hidden;
         height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: 'Arial', sans-serif;
+        cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
       }
 
       .splash-container {
         width: 100vw;
         height: 100vh;
         position: relative;
-        cursor: pointer;
-        user-select: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: appStart 2s ease-out;
       }
 
+      @keyframes appStart {
+        0% {
+          opacity: 0;
+          transform: scale(1.02);
+          filter: blur(1px);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1);
+          filter: blur(0);
+        }
+      }
+
+      /* 배경 이미지 - 전체 화면 꽉 채우기 */
       .splash-image {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        opacity: 0;
-        background-size: contain;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-color: #f5f3f0;
-        transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 1;
+        object-fit: cover;
+        object-position: center;
+        animation: subtleZoom 12s ease-in-out infinite;
+        background: #f5f3f0; /* 이미지 로드 전 배경색 */
       }
 
-      .splash-image:nth-child(1) {
-        background-image: url('splash1.png');
+      @keyframes subtleZoom {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.01);
+        }
       }
 
-      .splash-image:nth-child(2) {
-        background-image: url('splash2.png');
-      }
-
-      .splash-image:nth-child(3) {
-        background-image: url('splash3.png');
-      }
-
-      .splash-image.active {
-        opacity: 1;
-        z-index: 2;
-      }
-
-      .splash-image.fade-out {
-        opacity: 0;
-        z-index: 1;
-      }
-
-      /* 로딩 인디케이터 */
-      .loading-dots {
+      /* 상단 브랜드 로고 */
+      .top-brand {
         position: absolute;
-        bottom: 50px;
+        top: 60px;
         left: 50%;
         transform: translateX(-50%);
-        display: flex;
-        gap: 8px;
+        text-align: center;
+        z-index: 10;
+        animation: brandSlideDown 2s ease-out 0.5s both;
       }
 
-      .dot {
-        width: 8px;
-        height: 8px;
+      @keyframes brandSlideDown {
+        0% {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-30px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
+
+      .logo-circle {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.95);
         border-radius: 50%;
-        background: rgba(0, 0, 0, 0.3);
-        animation: pulse 2s infinite;
+        margin: 0 auto 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 700;
+        color: #8b7355;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        animation: logoFloat 4s ease-in-out infinite;
       }
 
-      .dot:nth-child(1) {
-        animation-delay: 0s;
-      }
-      .dot:nth-child(2) {
-        animation-delay: 0.2s;
-      }
-      .dot:nth-child(3) {
-        animation-delay: 0.4s;
+      @keyframes logoFloat {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-3px);
+        }
       }
 
-      /* 터치 안내 텍스트 */
-      .touch-hint {
+      .brand-text {
+        font-size: 12px;
+        font-weight: 500;
+        color: #2c2c2c;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 4px 12px;
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+      }
+
+      /* 하단 정보 카드 */
+      .info-card {
+        position: absolute;
+        bottom: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 24px 32px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        z-index: 10;
+        animation: cardSlideUp 2s ease-out 1s both;
+        max-width: 320px;
+        width: 90%;
+      }
+
+      @keyframes cardSlideUp {
+        0% {
+          opacity: 0;
+          transform: translateX(-50%) translateY(30px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
+
+      .app-title {
+        font-size: 28px;
+        font-weight: 300;
+        color: #2c2c2c;
+        margin-bottom: 8px;
+        letter-spacing: 3px;
+      }
+
+      .app-subtitle {
+        font-size: 14px;
+        font-weight: 400;
+        color: #666;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+      }
+
+      .feature-list {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 20px;
+      }
+
+      .feature-item {
+        text-align: center;
+        flex: 1;
+      }
+
+      .feature-icon {
+        width: 24px;
+        height: 24px;
+        background: #d9b496;
+        border-radius: 50%;
+        margin: 0 auto 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .feature-text {
+        font-size: 10px;
+        color: #8b7355;
+        font-weight: 500;
+      }
+
+      /* 터치 안내 - 위치 조정 */
+      .touch-guide {
         position: absolute;
         bottom: 100px;
         left: 50%;
         transform: translateX(-50%);
-        color: #2c2c2c;
-        font-size: 18px;
-        font-weight: 600;
-        text-align: center;
-        animation: fadeInOut 3s infinite;
-        z-index: 10;
-        text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
+        background: rgba(44, 44, 44, 0.9);
+        backdrop-filter: blur(15px);
+        border-radius: 25px;
+        padding: 12px 24px;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 500;
         letter-spacing: 0.5px;
+        animation: touchPulse 2.5s ease-in-out infinite;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        z-index: 15;
       }
 
-      @keyframes pulse {
+      @keyframes touchPulse {
         0%,
         100% {
-          opacity: 0.3;
-          transform: scale(1);
-        }
-        50% {
-          opacity: 1;
-          transform: scale(1.2);
-        }
-      }
-
-      @keyframes fadeInOut {
-        0%,
-        100% {
-          opacity: 0.7;
+          opacity: 0.85;
           transform: translateX(-50%) scale(1);
         }
         50% {
           opacity: 1;
-          transform: translateX(-50%) scale(1.05);
+          transform: translateX(-50%) scale(1.02);
         }
       }
 
-      /* 자동 재시작 제거 */
-      .splash-container {
-        width: 100vw;
-        height: 100vh;
-        position: relative;
+      /* 프로그레스 인디케이터 */
+      .progress-dots {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 8px;
+        z-index: 10;
+        animation: dotsAppear 2s ease-out 2s both;
+      }
+
+      @keyframes dotsAppear {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .progress-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(139, 115, 85, 0.4);
+        animation: dotPulse 2s ease-in-out infinite;
+      }
+
+      .progress-dot:nth-child(1) {
+        animation-delay: 0s;
+      }
+      .progress-dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .progress-dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes dotPulse {
+        0%,
+        100% {
+          background: rgba(139, 115, 85, 0.4);
+          transform: scale(1);
+        }
+        50% {
+          background: rgba(139, 115, 85, 0.8);
+          transform: scale(1.2);
+        }
+      }
+
+      /* 버전 및 상태 정보 */
+      .status-info {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        z-index: 10;
+        animation: statusFadeIn 2s ease-out 1.5s both;
+      }
+
+      @keyframes statusFadeIn {
+        0% {
+          opacity: 0;
+          transform: translateX(20px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .version-tag {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #8b7355;
+        backdrop-filter: blur(10px);
+      }
+
+      .status-indicator {
+        width: 8px;
+        height: 8px;
+        background: #4caf50;
+        border-radius: 50%;
+        animation: statusBlink 2s ease-in-out infinite;
+        box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+      }
+
+      @keyframes statusBlink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* 로딩 오버레이 - 빠르게 사라지도록 수정 */
+      .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(245, 243, 240, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+        opacity: 1;
+        transition: opacity 0.5s ease;
+      }
+
+      .loading-overlay.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .loading-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid rgba(139, 115, 85, 0.3);
+        border-radius: 50%;
+        border-top-color: #8b7355;
+        animation: spin 1s ease-in-out infinite;
+        margin-bottom: 16px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading-text {
+        font-size: 14px;
+        color: #8b7355;
+        font-weight: 500;
+        letter-spacing: 1px;
+      }
+
+      /* 장식 요소들 */
+      .decoration {
+        position: absolute;
+        pointer-events: none;
+        z-index: 5;
+      }
+
+      .decoration-1 {
+        top: 25%;
+        left: 10%;
+        width: 40px;
+        height: 40px;
+        border: 1px solid rgba(217, 180, 150, 0.3);
+        border-radius: 50%;
+        animation: float1 8s ease-in-out infinite;
+      }
+
+      .decoration-2 {
+        top: 70%;
+        right: 15%;
+        width: 20px;
+        height: 20px;
+        border: 1px solid rgba(139, 115, 85, 0.3);
+        transform: rotate(45deg);
+        animation: float2 6s ease-in-out infinite;
+      }
+
+      @keyframes float1 {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0deg);
+          opacity: 0.3;
+        }
+        50% {
+          transform: translateY(-10px) rotate(180deg);
+          opacity: 0.6;
+        }
+      }
+
+      @keyframes float2 {
+        0%,
+        100% {
+          transform: rotate(45deg) translateY(0);
+          opacity: 0.4;
+        }
+        50% {
+          transform: rotate(225deg) translateY(-8px);
+          opacity: 0.7;
+        }
+      }
+
+      /* 반응형 */
+      @media (max-width: 768px) {
+        .top-brand {
+          top: 40px;
+        }
+
+        .logo-circle {
+          width: 40px;
+          height: 40px;
+          font-size: 16px;
+        }
+
+        .info-card {
+          padding: 20px 24px;
+          bottom: 100px;
+        }
+
+        .app-title {
+          font-size: 24px;
+          letter-spacing: 2px;
+        }
+
+        .touch-guide {
+          font-size: 13px;
+          bottom: 50px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .info-card {
+          padding: 16px 20px;
+          max-width: 280px;
+        }
+
+        .app-title {
+          font-size: 20px;
+          letter-spacing: 1.5px;
+        }
+
+        .feature-icon {
+          width: 20px;
+          height: 20px;
+          font-size: 10px;
+        }
+      }
+
+      /* 상태바 및 홈 인디케이터 (iOS) */
+      .status-bar-spacer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: env(safe-area-inset-top);
+        background: transparent;
+        z-index: 25;
+      }
+
+      .home-indicator-spacer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: env(safe-area-inset-bottom);
+        background: transparent;
+        z-index: 25;
       }
     </style>
   </head>
   <body>
     <div class="splash-container">
-      <div class="splash-image"></div>
-      <div class="splash-image"></div>
-      <div class="splash-image"></div>
+      <!-- 상태바 공간 -->
+      <div class="status-bar-spacer"></div>
 
-      <div class="loading-dots">
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
+      <!-- 배경 이미지 (원본) - 폴백 배경색 추가 -->
+      <img
+        src="splash1.png"
+        alt="시장백서"
+        class="splash-image"
+        id="splashImage"
+        style="background: #f5f3f0"
+      />
+
+      <!-- 로딩 오버레이 -->
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">시장백서 로딩중...</div>
       </div>
 
-      <div class="touch-hint">화면을 터치하여 시작하세요</div>
+      <!-- 장식 요소들 -->
+      <div class="decoration decoration-1"></div>
+      <div class="decoration decoration-2"></div>
+
+      <!-- 상단 상태 정보 -->
+      <div class="status-info">
+        <div class="version-tag">v1.0</div>
+        <div class="status-indicator"></div>
+      </div>
+
+      <!-- 터치 안내 -->
+      <div class="touch-guide">화면을 터치하여 시작하세요</div>
+
+      <!-- 프로그레스 인디케이터 -->
+      <div class="progress-dots">
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+      </div>
+
+      <!-- 홈 인디케이터 공간 -->
+      <div class="home-indicator-spacer"></div>
     </div>
 
     <script>
-      let currentImage = 0;
-      const images = document.querySelectorAll('.splash-image');
-      const totalImages = images.length;
-      let isTransitioning = false;
-      let slideInterval;
-      let initialTimeout;
-
-      function crossFadeToNext() {
-        if (isTransitioning) return;
-        isTransitioning = true;
-
-        const currentImg = images[currentImage];
-        const nextIndex = (currentImage + 1) % totalImages;
-        const nextImg = images[nextIndex];
-
-        // 다음 이미지를 뒤에 배치하고 서서히 나타나게 함
-        nextImg.style.zIndex = '2';
-        currentImg.style.zIndex = '1';
-
-        // 다음 이미지를 서서히 나타나게 함
-        nextImg.classList.add('active');
-
-        // 1.5초 후 현재 이미지를 완전히 숨김
-        setTimeout(() => {
-          currentImg.classList.remove('active');
-          currentImg.classList.add('fade-out');
-
-          // 전환 완료 후 정리
-          setTimeout(() => {
-            currentImg.classList.remove('fade-out');
-            currentImg.style.zIndex = '1';
-            isTransitioning = false;
-          }, 100);
-        }, 1500);
-
-        currentImage = nextIndex;
-      }
-
-      function startSlideshow() {
-        // 첫 번째 이미지 표시
-        images[0].classList.add('active');
-
-        // 3초 후부터 4초마다 전환
-        initialTimeout = setTimeout(() => {
-          crossFadeToNext();
-          slideInterval = setInterval(crossFadeToNext, 4000);
-        }, 3000);
-      }
+      let isReady = false;
+      let touchStartTime = 0;
 
       function navigateToLogin() {
-        // 슬라이드쇼 중단
-        if (slideInterval) clearInterval(slideInterval);
-        if (initialTimeout) clearTimeout(initialTimeout);
+        if (!isReady) return;
 
-        // 로그인 페이지로 이동
-        window.location.href = '../login/login.html';
+        // 햅틱 피드백
+        if (navigator.vibrate) {
+          navigator.vibrate(50);
+        }
+
+        // 부드러운 전환 효과
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(245, 243, 240, 0.95);
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.6s ease-out;
+        backdrop-filter: blur(10px);
+      `;
+        document.body.appendChild(overlay);
+
+        requestAnimationFrame(() => {
+          overlay.style.opacity = '1';
+        });
+
+        setTimeout(() => {
+          window.location.href = '../login/login.html';
+        }, 600);
       }
 
-      // 페이지 로드 후 실행
-      window.addEventListener('load', function () {
-        startSlideshow();
+      function initializeApp() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const splashImage = document.getElementById('splashImage');
 
-        // 터치/클릭 이벤트 등록
-        const container = document.querySelector('.splash-container');
+        // 즉시 로딩 오버레이 숨기기
+        setTimeout(() => {
+          loadingOverlay.classList.add('hide');
+          isReady = true;
+          console.log('✨ 시장백서 앱 준비 완료');
+        }, 800);
 
-        // 터치 이벤트 (모바일)
-        container.addEventListener('touchstart', function (e) {
-          e.preventDefault();
-          navigateToLogin();
+        // 이미지 로드 처리 (백그라운드에서)
+        splashImage.onload = function () {
+          console.log('🖼️ 이미지 로드 성공');
+        };
+
+        splashImage.onerror = function () {
+          console.warn('⚠️ 이미지 로드 실패 - 계속 진행');
+          // 이미지가 없어도 앱 계속 진행
+        };
+
+        // 이벤트 리스너 등록
+        document.addEventListener('touchstart', handleTouchStart, {
+          passive: false,
         });
-
-        // 클릭 이벤트 (데스크톱)
-        container.addEventListener('click', function (e) {
-          e.preventDefault();
-          navigateToLogin();
+        document.addEventListener('touchend', handleTouchEnd, {
+          passive: false,
         });
+        document.addEventListener('click', handleClick);
+        document.addEventListener('keydown', handleKeyboard);
 
-        // 키보드 이벤트 (Enter, Space)
-        document.addEventListener('keydown', function (e) {
-          if (e.code === 'Enter' || e.code === 'Space') {
+        function handleTouchStart(e) {
+          touchStartTime = Date.now();
+          e.preventDefault();
+        }
+
+        function handleTouchEnd(e) {
+          const touchDuration = Date.now() - touchStartTime;
+          if (touchDuration < 500 && isReady) {
+            // 500ms 이하의 짧은 터치만 인식
+            navigateToLogin();
+          }
+          e.preventDefault();
+        }
+
+        function handleClick(e) {
+          e.preventDefault();
+          if (isReady) {
+            navigateToLogin();
+          }
+        }
+
+        function handleKeyboard(e) {
+          if ((e.code === 'Enter' || e.code === 'Space') && isReady) {
             e.preventDefault();
             navigateToLogin();
           }
-        });
-      });
+        }
 
-      // 이미지 로드 확인 (디버깅용)
-      images.forEach((img, index) => {
-        const testImg = new Image();
-        testImg.onload = () => console.log(`splash${index + 1}.png 로드 성공`);
-        testImg.onerror = () =>
-          console.error(`splash${index + 1}.png 로드 실패`);
-        testImg.src = `splash${index + 1}.png`;
+        // 자동 네비게이션 (8초 후)
+        setTimeout(() => {
+          if (isReady && document.visibilityState === 'visible') {
+            console.log('⏰ 자동 전환');
+            navigateToLogin();
+          }
+        }, 8000);
+      }
+
+      // 앱 초기화
+      window.addEventListener('load', initializeApp);
+
+      // 성능 모니터링
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const loadTime = performance.now();
+          console.log(`🚀 앱 로드 시간: ${loadTime.toFixed(2)}ms`);
+
+          // 메모리 사용량 (지원되는 브라우저에서만)
+          if ('memory' in performance) {
+            console.log(
+              `💾 메모리 사용량: ${(
+                performance.memory.usedJSHeapSize /
+                1024 /
+                1024
+              ).toFixed(2)}MB`
+            );
+          }
+        }, 0);
       });
     </script>
   </body>

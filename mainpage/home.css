@@ -12,6 +12,8 @@
   --pin-overlap: 10px; /* 8~12px에서 취향대로 */
   --label-pad-left: 16px;
 }
+/* Home: 시장 마커 라벨 타이포 */
+
 .map-label.market .badge {
   border-color: #59f1ff;
 }
@@ -534,7 +536,7 @@ body {
   position: sticky;
   bottom: 0;
   z-index: 9;
-  background: #fff;
+  background: #f7f6f7;
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-around;
@@ -610,9 +612,7 @@ body {
   white-space: nowrap;
 }
 
-.map-label.market .badge {
-  font-weight: 700;
-} /* 시장은 살짝 강조 */
+/* 시장은 살짝 강조 */
 .map-label .badge {
   background: #fff7f9;
   color: #000;

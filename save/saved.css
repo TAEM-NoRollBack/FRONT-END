@@ -1,0 +1,288 @@
+:root {
+  --brand: #ff83a2;
+  --ink: #111;
+  --muted: #9aa0a6;
+  --maxw: 393px;
+  --hdr: 64px;
+  /* 하단바 높이는 home.css가 관리 */
+}
+/* saved.css 최상단 어느 곳 */
+[hidden] {
+  display: none !important;
+}
+/* saved.css */
+.saved-row .distchip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #ff83a2;
+  background: #fff;
+  color: #ff83a2;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap; /* 한 줄 유지 */
+  width: auto; /* ✅ 글자폭만큼 */
+  max-width: fit-content; /* 지원 브라우저에서 더 확실히 */
+  align-self: flex-start; /* 부모가 flex여도 늘어나지 않게 */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* base */
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: #fff;
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', system-ui,
+    Segoe UI, Roboto, Helvetica, Arial, 'Apple SD Gothic Neo', 'Malgun Gothic',
+    'Nanum Gothic', sans-serif;
+}
+.frame {
+  width: min(100%, var(--maxw));
+  min-height: 100svh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* top bar */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: var(--hdr);
+  background: var(--brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.top-title {
+  margin: 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+.top-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.btn-back {
+  left: 8px;
+}
+.btn-close {
+  right: 8px;
+}
+
+/* content */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 16px 16px; /* 하단 여백은 home.css의 탭바 높이가 커버 */
+}
+/* 헤더 래퍼: 핑크 바 + 서브바를 한 덩어리로 고정 */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* 상단 핑크 바(제목만) */
+.topbar {
+  height: 64px;
+  background: var(--brand);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.top-title {
+  margin: 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* 새로 추가된 흰색 서브바: 아이콘 전용 */
+.subbar {
+  height: 44px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+.sub-btn {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: var(--brand); /* 아이콘 컬러 */
+}
+
+/* 아이콘 SVG는 버튼 색을 따라가도록 */
+.sub-btn svg {
+  display: block;
+}
+
+/* 비어있을 때 일러스트 더 아래로 */
+.empty {
+  margin-top: 24px;
+}
+.empty-illustration {
+  margin-top: 40px;
+} /* ↓ 내려줌 */
+
+/* empty state */
+.empty {
+  margin-top: 24px;
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+.empty-illustration {
+  width: 231px;
+  height: 208px;
+  margin: 0 auto 8px auto;
+}
+.empty-text {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* saved list (미래용) */
+.saved-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+/* tabbar (home.html과 동일 룩) */
+/* 아이콘이 안 보일 때 필살기 */
+.tabbar .icon-slot svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.tabbar .icon-slot {
+  width: 26px;
+  height: 26px;
+} /* 홈과 동일 수치 */
+.tabbar .icon-slot svg {
+  width: 100%;
+  height: 100%;
+}
+/* saved list row */
+.saved-list {
+  display: block; /* 행+구분선 붙여 렌더 */
+  padding: 0 16px 12px;
+}
+.saved-row {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  cursor: pointer;
+}
+.saved-row:active {
+  opacity: 0.9;
+}
+
+.saved-row .thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  background: #eee center/cover no-repeat;
+  flex: 0 0 64px;
+}
+.saved-row .meta {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.saved-row .name {
+  font-weight: 700;
+  font-size: 15px;
+  color: #000;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.saved-row .addr {
+  font-size: 12px;
+  color: #555;
+  line-height: 1.3;
+
+  /* 멀티라인 말줄임 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 구형/웹킷 */
+  line-clamp: 2; /* 표준(신버전 브라우저) */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.distchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 14.5px;
+  border: 1px solid #ff83a2;
+  color: #ff83a2;
+  background: #fff;
+  font-size: 11px;
+  line-height: 1;
+}
+.distchip::before {
+  content: '';
+  width: 8px;
+  height: 12px;
+  flex: 0 0 auto;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='12' viewBox='0 0 8 12' fill='none'%3E%3Cpath d='M4 5.7C4.1876 5.7 4.37337 5.6612 4.54669 5.58582C4.72001 5.51044 4.8775 5.39995 5.01015 5.26066C5.14281 5.12137 5.24804 4.95601 5.31983 4.77403C5.39162 4.59204 5.42857 4.39698 5.42857 4.2C5.42857 3.80218 5.27806 3.42064 5.01015 3.13934C4.74224 2.85804 4.37888 2.7 4 2.7C3.62112 2.7 3.25776 2.85804 2.98985 3.13934C2.72194 3.42064 2.57143 3.80218 2.57143 4.2C2.57143 4.39698 2.60838 4.59204 2.68017 4.77403C2.75196 4.95601 2.85719 5.12137 2.98985 5.26066C3.25776 5.54197 3.62112 5.7 4 5.7ZM4 0C6.20571 0 8 1.878 8 4.2C8 7.35 4 12 4 12C4 12 0 7.35 0 4.2C0 3.08609 0.421428 2.0178 1.17157 1.23015C1.92172 0.442499 2.93913 0 4 0Z' fill='%23FF83A2'/%3E%3C/svg%3E")
+    center/contain no-repeat;
+}
+
+/* 회색 구분줄 */
+.saved-sep {
+  height: 1px;
+  background: #eee;
+  margin: 0;
+}
+.saved-row .addr {
+  font-size: 12px;
+  color: #555;
+  line-height: 1.3;
+
+  /* 멀티라인 말줄임 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 구형/웹킷 */
+  line-clamp: 2; /* 표준(신버전 브라우저) */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

@@ -1,514 +1,448 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <title>게시판 글쓰기</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet" />
-  <style>
-    :root{
-      --pink:#FF83A2;
-      --text:#111;
-      --bg:#fff;
-      --box:#FF83A2;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:#f5f5f7;color:var(--text);font-family:Pretendard,system-ui,-apple-system,BLINKMACSYSTEMFONT,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
-    a,button{cursor:pointer}
-    svg{display:block}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>블로그 글쓰기 | write.html</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" rel="stylesheet" />
+<style>
+  :root{
+    --pink:#FF83A2;
+    --pink-soft:#FFCDDA;
+    --line:#D9D9D9;
+    --text:#000;
+    --muted:#777;
+    --bg:#fff;
+  }
+  html,body{margin:0;height:100%;background:#fff;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+  .phone{max-width:393px;height:100svh;margin:0 auto;position:relative;background:#fff;box-shadow:0 0 0 1px #eee;display:flex;flex-direction:column;}
+  /* top bar */
+  .topbar{position:relative;height:64px;background:var(--pink);border-bottom-left-radius:10px;border-bottom-right-radius:10px;display:flex;align-items:flex-end;padding:8px 12px 10px;}
+  .topbar .back{all:unset;cursor:pointer;color:#fff;padding:6px 8px;border-radius:8px}
+  .topbar .title{flex:1;text-align:center;color:#000;font-size:18px}
+  .topbar .submit{all:unset;cursor:pointer;color:#000;background:#fff;padding:6px 10px;border-radius:14px;border:1px solid var(--pink);font-size:13px}
 
-    .phone{
-      width:393px;height:852px;background:var(--bg);
-      margin:0 auto;position:relative;overflow:hidden;box-shadow:0 10px 30px #00000012;border-radius:14px;
-    }
-    /* 상단 앱바 */
-    .appbar{
-      position:relative;height:81px;background:var(--pink);
-      border-bottom-left-radius:10px;border-bottom-right-radius:10px;
-    }
-    .appbar-inner{
-      position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:space-between;padding:18px 16px 12px 16px;
-    }
-    .back{border:0;background:transparent;padding:6px;display:flex;align-items:center;justify-content:center}
-    .center{display:flex;align-items:center;gap:8px;color:#000;font-size:18px;font-weight:400;line-height:1}
-    .center .dot{width:4px;height:4px;background:#000;border-radius:50%}
-    .visibility{border:0;background:transparent;color:#000;font-size:18px;font-weight:400;padding:0}
-    .submit{
-      border:1px solid var(--pink);background:#fff;color:#000;border-radius:14.5px;
-      padding:6px 12px;font-size:13px;font-weight:500;transition:opacity .2s ease,transform .1s ease;
-    }
-    /* disabled → 클릭 가능(안내 목적). 시각적 비활성만 */
-    .submit[aria-disabled="true"]{opacity:.4}
-    .submit:active{transform:translateY(1px)}
+  /* form */
+  .page{flex:1;overflow:auto;padding:14px 16px 88px;}
+  .row{margin:10px 0}
+  .label{font-size:14px;color:#333;margin-bottom:6px}
+  .input, .fake-input{width:100%;border:none;border-bottom:1px solid #000;padding:10px 0;font-size:16px;outline:none}
+  .input::placeholder{color:rgba(0,0,0,.44)}
+  .help{margin-top:4px;color:rgba(0,0,0,.44);font-size:13px}
+  .loc{display:flex;align-items:center;gap:8px;color:rgba(0,0,0,.44);cursor:pointer}
+  .loc .pin{width:16px;height:16px;background:var(--pink);-webkit-mask:url('map.svg') center/contain no-repeat;mask:url('map.svg') center/contain no-repeat;opacity:.85} /* 그냥 표시용 */
+  .loc .text{border-bottom:1px solid #000;padding:8px 0;flex:1}
 
-    .status-time{
-      position:absolute;left:35px;top:15px;width:61px;height:39px;
-      display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;
-    }
+  /* rating */
+  .rating{display:flex;align-items:center;gap:10px;margin-top:8px}
+  .stars{display:flex;gap:6px}
+  .star-btn{
+    all:unset;cursor:pointer;width:20px;height:20px;display:inline-block;
+    background:var(--pink);
+    opacity:.25;
+    -webkit-mask:url('star.svg') center / contain no-repeat;
+            mask:url('star.svg') center / contain no-repeat;
+  }
+  .star-btn.active{opacity:1}
+  .rating .hint{color:rgba(0,0,0,.44);font-size:14px}
+  .rating .num{color:#000;font-size:14px;min-width:32px}
 
-    .content{padding:0 0 88px 0;position:relative}
+  /* gallery */
+  .gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+  .thumb{width:100%;aspect-ratio:1.2/1;overflow:hidden;border-radius:10px;border:1px solid #eee;background:#f7f7f7}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
 
-    .field{margin:0 31px 0 31px;padding-top:142px;position:relative}
-    .title-input{
-      width:100%;border:0;border-bottom:.75px solid #000;padding:0 6px 10px 6px;
-      font-size:16.5px;outline:none;
-    }
-    .title-input::placeholder{color:#00000070}
-    .hint{margin:2px 31px 0 46px;color:#00000070;font-size:13px;line-height:1.6}
+  /* editor */
+  #editor{
+    min-height:220px;border-top:1px solid var(--line);padding:12px 2px 8px;font-size:15px;line-height:1.6;outline:none;
+    word-break:break-word;
+  }
+  #editor.align-left{ text-align:left }
+  #editor.align-center{ text-align:center }
+  #editor.align-right{ text-align:right }
+  #editor:empty:before{content:attr(data-placeholder);color:rgba(0,0,0,.44)}
 
-    .place{
-      margin:6px 31px 0 62px;padding:0;border:0;background:transparent;color:#00000070;
-      display:flex;align-items:center;gap:8px;font-size:14px;
-    }
-    .place.filled{color:#000}
+  /* bottom toolbar */
+  .toolbar{
+    position:fixed;left:50%;transform:translateX(-50%);
+    bottom:12px;background:#fff;border:1px solid var(--pink);
+    display:flex;align-items:center;gap:8px;padding:8px 8px 8px 8px;box-shadow:0 6px 24px rgba(0,0,0,.06);
+  }
+  .tool{width:36px;height:36px;border:1px solid var(--pink);border-radius:8px;display:grid;place-items:center;cursor:pointer;background:#fff}
+  .tool img{width:22px;height:22px;display:block}
+  .spacer{flex:1}
+  .btn-draft{all:unset;cursor:pointer;font-size:13px;background:#fff;border:1px solid var(--pink);padding:6px 10px;border-radius:8px}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:68px;background:#222;color:#fff;padding:8px 12px;border-radius:10px;font-size:13px;opacity:0;transition:.25s}
+  .toast.show{opacity:1}
 
-    /* 상단 구분선: 스샷 좌표(왼 31, 오른 31, top 180) */
-    .divider-top{position:absolute;left:31px;right:31px;top:180px;border-top:.75px solid #000}
-
-    /* 별점: 원래 절대좌표 배치 복원 */
-    .rating-wrap{position:relative;margin:22px 31px 0 31px;}
-    .rating-label{position:absolute;left:155px;top:-6px;color:#00000070;font-size:14px}
-    .stars-wrap{display:flex;align-items:center;gap:10px;margin-left:40px;margin-top:6px;position:relative}
-    .stars{position:relative;width:118px;height:20px}
-    .stars .row{position:absolute;inset:0;display:flex;gap:4px}
-    .stars svg{width:18px;height:17px}
-    .row.outline svg path{stroke:var(--pink);fill:none}
-    .row.fill{clip-path:inset(0 100% 0 0)}
-    .row.fill svg path{fill:var(--pink);stroke:var(--pink)}
-    .rating-value{margin-left:10px;font-size:13px}
-    .stars[aria-disabled="true"]{pointer-events:none;opacity:.5}
-
-    .photos{margin-top:28px;padding:0 23px}
-    .grid{display:grid;grid-template-columns:repeat(5, 30px);gap:8px;align-items:center;justify-content:flex-start}
-    .tile{width:30px;height:27px;border:1px solid var(--box);display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fff}
-    .tile img{width:100%;height:100%;object-fit:cover}
-    .tile.add::after{content:"+";font-size:18px;line-height:1;color:var(--pink)}
-    .photoErr{margin-top:8px;color:#c00;font-size:12px;min-height:16px}
-
-    .divider-bottom{position:absolute;left:-3px;right:-3px;bottom:66px;border-top:.75px solid #000}
-
-    .footer{
-      position:absolute;left:0;right:0;bottom:0;height:66px;background:#fff;
-      border-top:.75px solid #000;display:flex;align-items:center;gap:10px;padding:0 20px;
-    }
-    .foot-grid{display:flex;gap:10px;margin-right:auto}
-    .foot-grid .tile{width:30px;height:27px}
-    .draft{margin-left:auto;border:1px solid var(--box);background:#fff;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:500}
-
-    .toast{
-      position:absolute;left:50%;bottom:90px;transform:translateX(-50%);
-      background:#111;color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;
-      transition:opacity .25s ease, transform .25s ease;
-    }
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(-2px)}
-    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-    .error{outline:2px solid #d33;outline-offset:2px}
-
-    /* 팝업 + 백드롭 */
-    .backdrop{
-      position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:10000;
-      background:rgba(0,0,0,.35);
-      -webkit-backdrop-filter: blur(6px) saturate(115%);
-      backdrop-filter: blur(6px) saturate(115%);
-    }
-    .backdrop.show{ display:flex; }
-    .popup244{
-      width:244px;height:166px;position:relative;background:#FFCDDA;border-radius:10px;
-      box-shadow:0 8px 24px rgba(0,0,0,.18);
-    }
-    .popup244 .title{
-      position:absolute;left:0;right:0;top:13px;text-align:center;color:#000;font-size:20px;font-weight:600;line-height:38.64px;
-    }
-    .popup244 .divider{position:absolute;left:0;right:0;top:123px;height:2px;background:#FF83A2}
-    .popup244 .cancel{
-      position:absolute;left:0;right:0;top:125px;height:41px;border:0;background:transparent;color:#000;
-      font-size:18px;font-weight:500;cursor:pointer;
-    }
-    .popup244 .desc{
-      position:absolute;left:0;right:0;top:64px;text-align:center;color:#000;font-size:17px;line-height:24px;
-    }
-    .popup244 .learn{position:absolute;left:0;right:0;bottom:6px;text-align:center;color:#FF83A2;font-size:10px;font-weight:600}
-    .popup244 .learn-underline{position:absolute;left:76px;right:76px;bottom:0;height:.5px;background:#FF83A2}
-    .loader{position:absolute;left:0;right:0;top:60px;margin:0 auto;width:44px;height:44px}
-    .loader svg{width:44px;height:44px}
-    .loader .spin{transform-origin:50% 50%;animation:spin 1.05s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-
-    /* 팝업 열릴 때 스크롤/포커스 잠금 */
-    body.modal-open{overflow:hidden}
-  </style>
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:18px}
+  .modal .sheet{width:min(360px,100%);max-height:70vh;overflow:auto;background:#fff;border-radius:14px;border:1px solid #eee}
+  .sheet header{position:sticky;top:0;background:#fff;padding:12px 14px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+  .sheet header strong{font-size:15px}
+  .sheet header button{all:unset;cursor:pointer;color:var(--pink);font-weight:600}
+  .list{padding:4px 8px 10px}
+  .group-title{margin:12px 6px 6px;font-size:13px;color:#999}
+  .item{padding:10px;border:1px solid #eee;border-radius:10px;margin:6px 4px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+  .item small{color:#777}
+  .empty{padding:30px;text-align:center;color:#999}
+</style>
 </head>
 <body>
-  <div class="phone" id="app">
-    <!-- 앱바 -->
-    <div class="appbar">
-      <div class="status-time">2:21</div>
-      <div class="appbar-inner">
-        <button class="back" id="backBtn" aria-label="뒤로가기">
-          <svg width="10" height="17" viewBox="0 0 10 17" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M2.41379 8.485L9.48479 15.556L8.07079 16.97L0.292786 9.192C0.105315 9.00447 0 8.75016 0 8.485C0 8.21984 0.105315 7.96553 0.292786 7.778L8.07079 0L9.48479 1.414L2.41379 8.485Z" fill="#000"/>
-          </svg>
-        </button>
-        <div class="center">
-          <span>게시판</span>
-          <span class="dot" aria-hidden="true"></span>
-          <button class="visibility" id="visibilityBtn" type="button" aria-haspopup="listbox" aria-expanded="false">전체공개</button>
+<div class="phone">
+  <div class="topbar">
+    <button id="btnBack" class="back">〈</button>
+    <div class="title">게시판 · 전체공개</div>
+    <button id="btnSubmit" class="submit">등록</button>
+  </div>
+
+  <div class="page">
+    <!-- 제목 -->
+    <div class="row">
+      <input id="title" class="input" placeholder="제목 (가게이름 입력 필수)" maxlength="80" />
+    </div>
+
+    <!-- 위치 -->
+    <div class="row">
+      <div id="btnPickLocation" class="loc" role="button" tabindex="0" aria-label="위치 선택">
+        <span class="pin" aria-hidden="true"></span>
+        <div id="placeText" class="text">위치추가 (가게위치 등록 필수)</div>
+      </div>
+      <div class="help">최근 다녀온 가게·시장을 사진과 함께 기록해보세요.</div>
+    </div>
+
+    <!-- 별점 -->
+    <div class="row">
+      <div class="rating">
+        <div id="stars" class="stars" aria-label="별점 매기기">
+          <button class="star-btn" data-val="1" aria-label="1점"></button>
+          <button class="star-btn" data-val="2" aria-label="2점"></button>
+          <button class="star-btn" data-val="3" aria-label="3점"></button>
+          <button class="star-btn" data-val="4" aria-label="4점"></button>
+          <button class="star-btn" data-val="5" aria-label="5점"></button>
         </div>
-        <button class="submit" id="submitBtn" aria-disabled="true">등록</button>
+        <div class="hint">별점을 선택해주세요.</div>
+        <div id="ratingNum" class="num"></div>
       </div>
     </div>
+
+    <!-- 썸네일 갤러리 -->
+    <div id="gallery" class="gallery" aria-live="polite"></div>
 
     <!-- 본문 -->
-    <div class="content">
-      <div class="field">
-        <input id="titleInput" class="title-input" type="text" placeholder="제목 (가게이름 입력 필수)" autocomplete="off" />
-      </div>
-      <div class="hint">최근 다녀온 가게  시장을 사진과 함께 기록해보세요.</div>
-
-      <button id="placeBtn" class="place empty" type="button" aria-describedby="placeHelp">
-        <svg width="15" height="20" viewBox="0 0 15 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M7.73156 18.5866C8.80979 17.564 9.80769 16.4526 10.7156 15.263C12.6281 12.7516 13.7916 10.2756 13.8703 8.07388C13.9015 7.17908 13.7598 6.2869 13.4536 5.45063C13.1475 4.61436 12.6832 3.85116 12.0886 3.20661C11.4939 2.56207 10.7811 2.0494 9.99261 1.69924C9.20414 1.34908 8.35623 1.16861 7.49953 1.16861C6.64283 1.16861 5.79493 1.34908 5.00646 1.69924C4.21799 2.0494 3.50513 2.56207 2.91047 3.20661C2.31582 3.85116 1.85156 4.61436 1.54543 5.45063C1.2393 6.2869 1.09759 7.17908 1.12875 8.07388C1.20844 10.2756 2.37281 12.7516 4.28437 15.263C5.19231 16.4526 6.19021 17.564 7.26844 18.5866C7.37219 18.6846 7.44938 18.7558 7.5 18.8002L7.73156 18.5866ZM6.80813 19.7281C6.80813 19.7281 0 13.7354 0 7.83872C0 5.75976 0.790176 3.76595 2.1967 2.29591C3.60322 0.825863 5.51088 0 7.5 0C9.48912 0 11.3968 0.825863 12.8033 2.29591C14.2098 3.76595 15 5.75976 15 7.83872C15 13.7354 8.19187 19.7281 8.19187 19.7281C7.81313 20.0926 7.18969 20.0887 6.80813 19.7281ZM7.5 10.5823C8.19619 10.5823 8.86387 10.2932 9.35616 9.7787C9.84844 9.26419 10.125 8.56635 10.125 7.83872C10.125 7.11108 9.84844 6.41325 9.35616 5.89873C8.86387 5.38422 8.19619 5.09517 7.5 5.09517C6.80381 5.09517 6.13613 5.38422 5.64384 5.89873C5.15156 6.41325 4.875 7.11108 4.875 7.83872C4.875 8.56635 5.15156 9.26419 5.64384 9.7787C6.13613 10.2932 6.80381 10.5823 7.5 10.5823Z" fill="#FF83A2"/>
-        </svg>
-        <span id="placeText">위치추가 (가게위치 등록 필수)</span>
-      </button>
-      <span id="placeHelp" class="sr-only">가게 위치를 입력하세요.</span>
-
-      <div class="divider-top" aria-hidden="true"></div>
-
-      <!-- 별점 -->
-      <div class="rating-wrap">
-        <div class="rating-label">별점을 선택해주세요.</div>
-        <div class="stars-wrap">
-          <div id="stars" class="stars" role="slider" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" tabindex="0" aria-label="별점 선택">
-            <div class="row outline" aria-hidden="true">
-              <!-- 빈 별 5개 (3번째 SVG 오타 수정됨) -->
-              <svg viewBox="0 0 18 17"><path d="M9 .5c.097 0 .201.025.318.091.082.046.145.114.193.227l1.972 4.626.117.276.299.026 5.078.44c.177.026.269.076.315.116.07.06.129.142.173.26.037.101.043.2.02.307-.017.081-.063.168-.172.264l-3.857 3.295-.231.198.07.297 1.156 4.913c.031.13.015.216-.016.281-.054.113-.127.202-.221.274-.077.059-.169.096-.29.106a.66.66 0 0 1-.216-.037l-.079-.042-4.363-2.599L9 13.66l-.256.152-4.363 2.599-.011.006c-.109.068-.203.088-.296.08-.12-.01-.211-.046-.288-.105a.68.68 0 0 1-.223-.275c-.031-.063-.046-.148-.016-.28l1.156-4.912.07-.297-.232-.199L.685 7.137h.001c-.108-.096-.154-.184-.171-.265-.024-.108-.017-.206.019-.306.043-.117.103-.199.174-.26.047-.041.138-.091.313-.116l5.08-.44.299-.026.117-.276L8.488.818c.048-.113.111-.181.192-.227.118-.066.222-.092.32-.091Z" stroke="#FF83A2" fill="none"/></svg>
-              <svg viewBox="0 0 18 17"><path d="M9 .5c.097 0 .201.025.318.091.082.046.145.114.193.227l1.972 4.626.117.276.299.026 5.078.44c.177.026.269.076.315.116.07.06.129.142.173.26.037.101.043.2.02.307-.017.081-.063.168-.172.264l-3.857 3.295-.231.198.07.297 1.156 4.913c.031.13.015.216-.016.281-.054.113-.127.202-.221.274-.077.059-.169.096-.29.106a.66.66 0 0 1-.216-.037l-.079-.042-4.363-2.599L9 13.66l-.256.152-4.363 2.599-.011.006c-.109.068-.203.088-.296.08-.12-.01-.211-.046-.288-.105a.68.68 0 0 1-.223-.275c-.031-.063-.046-.148-.016-.28l1.156-4.912.07-.297-.232-.199L.685 7.137h.001c-.108-.096-.154-.184-.171-.265-.024-.108-.017-.206.019-.306.043-.117.103-.199.174-.26.047-.041.138-.091.313-.116l5.08-.44.299-.026.117-.276L8.488.818c.048-.113.111-.181.192-.227.118-.066.222-.092.32-.091Z" stroke="#FF83A2" fill="none"/></svg>
-              <svg viewBox="0 0 18 17"><path d="M9 .5c.097 0 .201.025.318 .091.082.046.145.114.193.227l1.972 4.626.117.276.299.026 5.078.44c.177.026.269.076.315.116.07.06.129.142.173.26.037.101.043.2.02.307-.017.081-.063.168-.172.264l-3.857 3.295-.231.198.07.297 1.156 4.913c.031.13.015.216-.016.281-.054.113-.127.202-.221.274-.077.059-.169.096-.29.106a.66.66 0 0 1-.216-.037l-.079-.042-4.363-2.599L9 13.66l-.256.152-4.363 2.599-.011.006c-.109.068-.203.088-.296.08-.12-.01-.211-.046-.288-.105a.68.68 0 0 1-.223-.275c-.031-.063-.046-.148-.016-.28l1.156-4.912.07-.297-.232-.199L.685 7.137h.001c-.108-.096-.154-.184-.171-.265-.024-.108-.017-.206.019-.306.043-.117.103-.199.174-.26.047-.041.138-.091.313-.116l5.08-.44.299-.026.117-.276L8.488.818c.048-.113.111-.181.192-.227.118-.066.222-.092.32-.091Z" stroke="#FF83A2" fill="none"/></svg>
-              <svg viewBox="0 0 18 17"><path d="M9 .5c.097 0 .201.025.318.091.082.046.145.114.193.227l1.972 4.626.117.276.299.026 5.078.44c.177.026.269.076.315.116.07.06.129.142.173.26.037.101.043.2.02.307-.017.081-.063.168-.172.264l-3.857 3.295-.231.198.07.297 1.156 4.913c.031.13.015.216-.016.281-.054.113-.127.202-.221.274-.077.059-.169.096-.29.106a.66.66 0 0 1-.216-.037l-.079-.042-4.363-2.599L9 13.66l-.256.152-4.363 2.599-.011.006c-.109.068-.203.088-.296.08-.12-.01-.211-.046-.288-.105a.68.68 0 0 1-.223-.275c-.031-.063-.046-.148-.016-.28l1.156-4.912.07-.297-.232-.199L.685 7.137h.001c-.108-.096-.154-.184-.171-.265-.024-.108-.017-.206.019-.306.043-.117.103-.199.174-.26.047-.041.138-.091.313-.116l5.08-.44.299-.026.117-.276L8.488.818c.048-.113.111-.181.192-.227.118-.066.222-.092.32-.091Z" stroke="#FF83A2" fill="none"/></svg>
-              <svg viewBox="0 0 18 17"><path d="M9 .5c.097 0 .201.025 .318.091 .082.046 .145.114 .193.227 l1.972 4.626 .117.276 .299.026 5.078.44 c.177.026 .269.076 .315.116 .07.06 .129.142 .173.26 .037.101 .043.2 .02.307 -.017.081 -.063.168 -.172.264 l-3.857 3.295 -.231.198 .07.297 1.156 4.913 c.031.13 .015.216 -.016.281 -.054.113 -.127.202 -.221.274 -.077.059 -.169.096 -.29.106 a.66.66 0 0 1 -.216-.037 l-.079-.042 -4.363-2.599 L9 13.66 l-.256.152 -4.363 2.599 -.011.006 c-.109.068 -.203.088 -.296.08 -.12-.01 -.211-.046 -.288-.105 a.68.68 0 0 1 -.223-.275 c-.031-.063 -.046-.148 -.016-.28 l1.156-4.912 .07-.297 -.232-.199 L.685 7.137 h.001 c-.108-.096 -.154-.184 -.171-.265 -.024-.108 -.017-.206 .019-.306 .043-.117 .103-.199 .174-.26 .047-.041 .138-.091 .313-.116 l5.08-.44 .299-.026 .117-.276 L8.488.818 c.048-.113 .111-.181 .192-.227 .118-.066 .222-.092 .32-.091 Z" stroke="#FF83A2" fill="none"/></svg>
-            </div>
-            <div class="row fill" id="starFill" aria-hidden="true">
-              <!-- 채워진 별 5개 -->
-              <svg viewBox="0 0 18 17"><path d="M9 .5c.097 0 .201.025.318.091.082.046.145.114.193.227l1.972 4.626.117.276.299.026 5.078.44c.177.026.269.076.315.116.07.06.129.142.173.26.037.101.043.2.02.307-.017.081-.063.168-.172.264l-3.857 3.295-.231.198.07.297 1.156 4.913c.031.13.015.216-.016.281-.054.113-.127.202-.221.274-.077.059-.169.096-.29.106a.66.66 0 0 1-.216-.037l-.079-.042-4.363-2.599L9 13.66l-.256.152-4.363 2.599-.011.006c-.109.068-.203.088-.296.08-.12-.01-.211-.046-.288-.105a.68.68 0 0 1-.223-.275c-.031-.063-.046-.148-.016-.28l1.156-4.912.07-.297-.232-.199L.685 7.137h.001c-.108-.096-.154-.184-.171-.265-.024-.108-.017-.206.019-.306.043-.117.103-.199.174-.26.047-.041.138-.091.313-.116l5.08-.44.299-.026.117-.276L8.488.818c.048-.113.111-.181.192-.227.118-.066.222-.092.32-.091Z"/></svg>
-              <svg viewBox="0 0 18 17"><path d="M9 .5c.097 0 .201.025.318.091.082.046.145.114.193.227l1.972 4.626.117.276.299.026 5.078.44c.177.026.269.076.315.116.07.06.129.142.173.26.037.101.043.2.02.307-.017.081-.063.168-.172.264l-3.857 3.295-.231.198.07.297 1.156 4.913c.031.13.015.216-.016.281-.054.113-.127.202-.221.274-.077.059-.169.096-.29.106a.66.66 0 0 1-.216-.037l-.079-.042-4.363-2.599L9 13.66l-.256.152-4.363 2.599-.011.006c-.109.068-.203.088-.296.08-.12-.01-.211-.046-.288-.105a.68.68 0 0 1-.223-.275c-.031-.063-.046-.148-.016-.28l1.156-4.912.07-.297-.232-.199L.685 7.137h.001c-.108-.096-.154-.184-.171-.265-.024-.108-.017-.206.019-.306.043-.117.103-.199.174-.26.047-.041.138-.091.313-.116l5.08-.44.299-.026.117-.276L8.488.818c.048-.113.111-.181.192-.227.118-.066.222-.092.32-.091Z"/></svg>
-              <svg viewBox="0 0 18 17"><path d="M9 .5c.097 0 .201.025.318 .091.082.046.145.114.193.227l1.972 4.626.117.276.299.026 5.078.44c.177.026.269.076.315.116.07.06.129.142.173.26.037.101.043.2.02.307-.017.081-.063.168-.172.264l-3.857 3.295-.231.198.07.297 1.156 4.913c.031.13.015.216-.016.281-.054.113-.127.202-.221.274-.077.059-.169.096-.29.106a.66.66 0 0 1-.216-.037l-.079-.042-4.363-2.599L9 13.66l-.256.152-4.363 2.599-.011.006c-.109.068-.203.088-.296.08-.12-.01-.211-.046-.288-.105a.68.68 0 0 1-.223-.275c-.031-.063-.046-.148-.016-.28l1.156-4.912.07-.297-.232-.199L.685 7.137h.001c-.108-.096-.154-.184-.171-.265-.024-.108-.017-.206.019-.306.043-.117.103-.199.174-.26.047-.041.138-.091.313-.116l5.08-.44.299-.026.117-.276L8.488.818c.048-.113.111-.181.192-.227.118-.066.222-.092.32-.091Z"/></svg>
-              <svg viewBox="0 0 18 17"><path d="M9 .5c.097 0 .201.025.318.091.082.046.145.114.193.227l1.972 4.626.117.276.299.026 5.078.44c.177.026.269.076.315.116.07.06.129.142.173.26.037.101.043.2.02.307-.017.081-.063.168-.172.264l-3.857 3.295-.231.198.07.297 1.156 4.913c.031.13.015.216-.016.281-.054.113-.127.202-.221.274-.077.059-.169.096-.29.106a.66.66 0 0 1-.216-.037l-.079-.042-4.363-2.599L9 13.66l-.256.152-4.363 2.599-.011.006c-.109.068-.203.088-.296.08-.12-.01-.211-.046-.288-.105a.68.68 0 0 1-.223-.275c-.031-.063-.046-.148-.016-.28l1.156-4.912.07-.297-.232-.199L.685 7.137h.001c-.108-.096-.154-.184-.171-.265-.024-.108-.017-.206.019-.306.043-.117.103-.199.174-.26.047-.041.138-.091.313-.116l5.08-.44.299-.026.117-.276L8.488.818c.048-.113.111-.181.192-.227.118-.066.222-.092.32-.091Z"/></svg>
-              <svg viewBox="0 0 18 17"><path d="M9 .5c.097 0 .201.025 .318.091 .082.046 .145.114 .193.227 l1.972 4.626 .117.276 .299.026 5.078.44 c.177.026 .269.076 .315.116 .07.06 .129.142 .173.26 .037.101 .043.2 .02.307 -.017.081 -.063.168 -.172.264 l-3.857 3.295 -.231.198 .07.297 1.156 4.913 c.031.13 .015.216 -.016.281 -.054.113 -.127.202 -.221.274 -.077.059 -.169.096 -.29.106 a.66.66 0 0 1 -.216-.037 l-.079-.042 -4.363-2.599 L9 13.66 l-.256.152 -4.363 2.599 -.011.006 c-.109.068 -.203.088 -.296.08 -.12-.01 -.211-.046 -.288-.105 a.68.68 0 0 1 -.223-.275 c-.031-.063 -.046-.148 -.016-.28 l1.156-4.912 .07-.297 -.232-.199 L.685 7.137 h.001 c-.108-.096 -.154-.184 -.171-.265 -.024-.108 -.017-.206 .019-.306 .043-.117 .103-.199 .174-.26 .047-.041 .138-.091 .313-.116 l5.08-.44 .299-.026 .117-.276 L8.488.818 c.048-.113 .111-.181 .192-.227 .118-.066 .222-.092 .32-.091 Z"/></svg>
-            </div>
-          </div>
-          <span id="ratingValue" class="rating-value">0.0</span>
-        </div>
-      </div>
-
-      <!-- 사진 업로드 -->
-      <div class="photos">
-        <input id="photoInput" type="file" accept="image/*" multiple hidden />
-        <div id="photoGrid" class="grid" aria-label="사진 업로드">
-          <button type="button" class="tile add" id="addPhotoTile" aria-label="사진 추가"></button>
-          <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
-        </div>
-        <div id="photoErr" class="photoErr" aria-live="polite"></div>
-      </div>
-
-      <div class="divider-bottom" aria-hidden="true"></div>
-    </div>
-
-    <!-- 하단 바 -->
-    <div class="footer">
-      <div class="foot-grid" aria-hidden="true">
-        <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
-      </div>
-      <button id="saveDraftBtn" class="draft" type="button">임시저장</button>
-    </div>
-
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="editor" class="align-left"
+         contenteditable="true"
+         data-placeholder="본문을 입력하세요. 사진을 올리면 위에 썸네일로 미리보기가 보여요."></div>
   </div>
 
-  <!-- 등록중 팝업 -->
-  <div id="regModal" class="backdrop" role="dialog" aria-modal="true" aria-labelledby="regTitle">
-    <div class="popup244" role="document">
-      <div class="title" id="regTitle">등록중</div>
-      <div class="divider" aria-hidden="true"></div>
-      <button id="regCancel" class="cancel" type="button">취소</button>
-      <div class="loader" aria-hidden="true">
-        <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
-          <path opacity="0.5" d="M22 3.6665C18.3741 3.6665 14.8295 4.74174 11.8146 6.75623C8.79969 8.77072 6.44986 11.634 5.06225 14.984C3.67465 18.334 3.31159 22.0202 4.01898 25.5765C4.72638 29.1328 6.47246 32.3995 9.03642 34.9635C11.6004 37.5274 14.8671 39.2735 18.4234 39.9809C21.9797 40.6883 25.6659 40.3252 29.0159 38.9376C32.3659 37.55 35.2292 35.2002 37.2437 32.1853C39.2581 29.1704 40.3334 25.6258 40.3334 21.9998C40.3334 19.5923 39.8592 17.2083 38.9378 14.984C38.0165 12.7597 36.666 10.7386 34.9636 9.03621C33.2612 7.33381 31.2402 5.98338 29.0159 5.06205C26.7916 4.14071 24.4076 3.6665 22 3.6665Z" fill="black"/>
-          <g class="spin"><path d="M36.6667 21.9998H40.3333C40.3333 19.5923 39.8591 17.2083 38.9378 14.984C38.0165 12.7597 36.666 10.7386 34.9636 9.03621C33.2612 7.33381 31.2402 5.98338 29.0159 5.06205C26.7916 4.14071 24.4076 3.6665 22 3.6665V7.33317C25.8898 7.33317 29.6204 8.8784 32.3709 11.6289C35.1214 14.3795 36.6667 18.11 36.6667 21.9998Z" fill="black"/></g>
-        </svg>
-      </div>
-    </div>
+  <!-- 하단 툴바 -->
+  <div class="toolbar" role="toolbar" aria-label="글쓰기 도구">
+    <button id="btnPickImage" class="tool" title="사진 업로드">
+      <img src="picture.svg" alt="사진" />
+    </button>
+    <button id="btnEmpty2" class="tool" title="(준비중)">
+      <img src="text.svg" alt="준비중" />
+    </button>
+    <button id="btnAlignLeft" class="tool" title="왼쪽 정렬">
+      <img src="left.svg" alt="왼쪽정렬" />
+    </button>
+    <button id="btnAlignCenter" class="tool" title="가운데 정렬">
+      <img src="middle.svg" alt="가운데정렬" />
+    </button>
+    <button id="btnAlignRight" class="tool" title="오른쪽 정렬">
+      <img src="right.svg" alt="오른쪽정렬" />
+    </button>
+    <button id="btnEmpty6" class="tool" title="(준비중)">
+      <img src="star.svg" alt="준비중" />
+    </button>
+    <div class="spacer"></div>
+    <button id="btnDraft" class="btn-draft">임시저장</button>
   </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</div>
 
-  <!-- 등록 완료 팝업 -->
-  <div id="doneModal" class="backdrop" role="dialog" aria-modal="true" aria-labelledby="doneTitle">
-    <div class="popup244" role="document">
-      <div class="title" id="doneTitle">등록되었습니다</div>
-      <div class="desc">200p 리워드가<br/>적립되었습니다.</div>
-      <div class="learn">리워드 시스템 알아보기</div>
-      <div class="learn-underline" aria-hidden="true"></div>
-    </div>
-  </div>
+<!-- 숨김 파일 입력 -->
+<input id="fileInput" type="file" accept="image/*" multiple hidden />
 
-  <script>
-    // ---- 상태 ----
-    const state = {
-      visibility: 'PUBLIC',
-      title: '',
-      place: null, // { name, address, lat, lng, placeId }
-      rating: 0,
-      photos: [], // { file, url }
-      maxPhotos: 10
-    };
+<!-- 더미데이터 API -->
+<script src="../lib/mock-api.js"></script>
 
-    // ---- 엘리먼트 ----
-    const titleInput = document.getElementById('titleInput');
-    const placeBtn = document.getElementById('placeBtn');
-    const placeText = document.getElementById('placeText');
-    const submitBtn = document.getElementById('submitBtn');
-    const backBtn = document.getElementById('backBtn');
-    const visibilityBtn = document.getElementById('visibilityBtn');
-    const stars = document.getElementById('stars');
-    const starFill = document.getElementById('starFill');
-    const ratingValue = document.getElementById('ratingValue');
-    const photoInput = document.getElementById('photoInput');
-    const addPhotoTile = document.getElementById('addPhotoTile');
-    const photoGrid = document.getElementById('photoGrid');
-    const photoErr = document.getElementById('photoErr');
-    const saveDraftBtn = document.getElementById('saveDraftBtn');
-    const toast = document.getElementById('toast');
+<script>
+(function(){
+  // ---------- state ----------
+  const state = {
+    place: null,               // { id, type:'market'|'place', name }
+    rating: 0,
+    images: [],                // dataURL[]
+    align: 'left'
+  };
 
-    // 팝업 엘리먼트
-    const regModal = document.getElementById('regModal');
-    const regCancel = document.getElementById('regCancel');
-    const doneModal = document.getElementById('doneModal');
+  const $ = (sel, el=document)=> el.querySelector(sel);
+  const $$ = (sel, el=document)=> Array.from(el.querySelectorAll(sel));
 
-    // ---- 유틸 ----
-    const showToast = (msg) => {
-      toast.textContent = msg;
-      toast.classList.add('show');
-      setTimeout(()=>toast.classList.remove('show'), 1700);
-    };
-    const isValidTitle = (t) => t.trim().length >= 1; // 스샷처럼 1자만 입력해도 허용
-    const hasPlace = (p) => !!(p && p.address);
-    const submitDisabled = () => submitBtn.getAttribute('aria-disabled') === 'true';
-    const setSubmitDisabled = (bool) => {
-      submitBtn.setAttribute('aria-disabled', bool ? 'true' : 'false');
-    };
-    const syncSubmitDisabled = () => {
-      const ok = isValidTitle(state.title) && hasPlace(state.place);
-      setSubmitDisabled(!ok);
-      titleInput.classList.toggle('error', !isValidTitle(state.title) && titleInput === document.activeElement);
-      placeBtn.classList.toggle('error', !hasPlace(state.place) && placeBtn === document.activeElement);
-    };
-    const saveDraft = (silent=false) => {
-      const draft = {
-        visibility: state.visibility,
-        title: state.title,
-        place: state.place,
-        rating: state.rating,
-        photos: state.photos.map(p => p.url),
-        updatedAt: new Date().toISOString()
-      };
-      localStorage.setItem('post_draft', JSON.stringify(draft));
-      if(!silent) showToast('임시저장 됐어요');
-    };
-    const loadDraft = () => {
-      try{
-        const raw = localStorage.getItem('post_draft');
-        if(!raw) return;
-        const d = JSON.parse(raw);
-        if(d.title){ state.title = d.title; titleInput.value = d.title; }
-        if(d.place){ state.place = d.place; placeText.textContent = d.place.address; placeBtn.classList.add('filled'); placeBtn.classList.remove('empty'); }
-        if(typeof d.rating === 'number'){ setRating(d.rating); }
-        if(Array.isArray(d.photos)){ d.photos.forEach(url => addPhotoPreview(null, url)); }
-      }catch(e){}
-    };
+  const el = {
+    title: $('#title'),
+    placeText: $('#placeText'),
+    btnPickLocation: $('#btnPickLocation'),
+    starsWrap: $('#stars'),
+    ratingNum: $('#ratingNum'),
+    editor: $('#editor'),
+    gallery: $('#gallery'),
+    fileInput: $('#fileInput'),
+    btnPickImage: $('#btnPickImage'),
+    btnAlignLeft: $('#btnAlignLeft'),
+    btnAlignCenter: $('#btnAlignCenter'),
+    btnAlignRight: $('#btnAlignRight'),
+    btnDraft: $('#btnDraft'),
+    btnSubmit: $('#btnSubmit'),
+    btnBack: $('#btnBack'),
+    toast: $('#toast')
+  };
 
-    // ---- 위치 입력(간단 프롬프트) ----
-    placeBtn.addEventListener('click', () => {
-      const addr = window.prompt('가게 주소를 입력하세요', state.place?.address || '');
-      if(addr && addr.trim()){
-        state.place = { name: state.title?.trim() || '', address: addr.trim(), lat: null, lng: null, placeId: null };
-        placeText.textContent = state.place.address;
-        placeBtn.classList.add('filled'); placeBtn.classList.remove('empty');
-        syncSubmitDisabled();
-      }
+  // ---------- helpers ----------
+  function toast(msg){
+    el.toast.textContent = msg;
+    el.toast.classList.add('show');
+    setTimeout(()=> el.toast.classList.remove('show'), 1400);
+  }
+
+  function stripHTML(html){
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return (tmp.textContent || tmp.innerText || '').trim();
+  }
+
+  // ---------- rating ----------
+  function renderStars(){
+    $$('.star-btn', el.starsWrap).forEach(btn=>{
+      const val = Number(btn.dataset.val);
+      btn.classList.toggle('active', val <= state.rating);
     });
+    el.ratingNum.textContent = state.rating ? state.rating.toFixed(1) : '';
+  }
+  el.starsWrap.addEventListener('click', e=>{
+    const btn = e.target.closest('.star-btn');
+    if(!btn) return;
+    state.rating = Number(btn.dataset.val);
+    renderStars();
+  });
+  renderStars();
 
-    // ---- 제목 ----
-    titleInput.addEventListener('input', (e) => { state.title = e.target.value; syncSubmitDisabled(); });
-    titleInput.addEventListener('blur', syncSubmitDisabled);
-
-    // ---- 공개범위 토글 ----
-    const visOrder = ['PUBLIC','FOLLOWERS','PRIVATE'];
-    const visLabel = { PUBLIC:'전체공개', FOLLOWERS:'팔로워공개', PRIVATE:'비공개' };
-    visibilityBtn.addEventListener('click', () => {
-      const idx = visOrder.indexOf(state.visibility);
-      state.visibility = visOrder[(idx+1)%visOrder.length];
-      visibilityBtn.textContent = visLabel[state.visibility];
-      visibilityBtn.setAttribute('aria-expanded','false');
-    });
-
-    // ---- 별점 ----
-    const setRating = (val) => {
-      const clamped = Math.max(0, Math.min(5, val));
-      state.rating = clamped;
-      ratingValue.textContent = clamped.toFixed(1);
-      const pct = (clamped/5)*100;
-      starFill.style.clipPath = `inset(0 ${100-pct}% 0 0)`;
-      stars.setAttribute('aria-valuenow', String(clamped));
-    };
-    const ratingFromEvent = (evt) => {
-      const rect = stars.getBoundingClientRect();
-      const x = Math.max(0, Math.min(rect.width, (evt.clientX ?? (evt.touches?.[0]?.clientX || 0)) - rect.left));
-      const unit = rect.width / 5;
-      const raw = x / unit;
-      return Math.round(raw * 2) / 2;
-    };
-    let dragging = false;
-    stars.addEventListener('mousedown', (e)=>{ dragging=true; setRating(ratingFromEvent(e)); });
-    window.addEventListener('mouseup', ()=> dragging=false);
-    stars.addEventListener('mousemove', (e)=>{ if(dragging) setRating(ratingFromEvent(e)); });
-    stars.addEventListener('touchstart', (e)=>{ setRating(ratingFromEvent(e)); }, {passive:true});
-    stars.addEventListener('touchmove', (e)=>{ setRating(ratingFromEvent(e)); }, {passive:true});
-    stars.addEventListener('keydown', (e)=>{ if(e.key==='ArrowRight') setRating(state.rating+0.5); if(e.key==='ArrowLeft') setRating(state.rating-0.5); });
-
-    // ---- 사진 업로드 ----
-    const addPhotoPreview = (file, urlFromDraft=null) => {
-      if(state.photos.length >= state.maxPhotos){
-        photoErr.textContent = `최대 ${state.maxPhotos}장까지 업로드할 수 있어요.`; return;
-      }
-      const url = urlFromDraft || URL.createObjectURL(file);
-      state.photos.push({ file, url });
-      const tile = document.createElement('div');
-      tile.className = 'tile';
-      tile.innerHTML = `<img alt="업로드된 사진 미리보기" src="${url}">`;
-      photoGrid.insertBefore(tile, addPhotoTile.nextSibling);
-      addPhotoTile.style.display = state.photos.length >= state.maxPhotos ? 'none' : '';
-    };
-    addPhotoTile.addEventListener('click', ()=> photoInput.click());
-    photoInput.addEventListener('change', (e)=>{
-      photoErr.textContent = '';
-      const files = Array.from(e.target.files || []);
-      for(const f of files){ if(!f.type.startsWith('image/')) continue; addPhotoPreview(f); }
-      photoInput.value = '';
-    });
-
-    // ---- 임시저장 ----
-    saveDraftBtn.addEventListener('click', ()=> saveDraft(false));
-
-    // ---- 뒤로가기 (변경사항 확인) ----
-    backBtn.addEventListener('click', ()=>{
-      const dirty = (titleInput.value || '') || state.place || state.photos.length || state.rating>0;
-      if(dirty){
-        const choice = confirm('변경사항이 저장되지 않았어요. 나가시겠어요?\n(임시저장을 누르면 보관됩니다)');
-        if(!choice) return;
-      }
-      location.href = 'board.html';
-    });
-
-    // ===== 팝업 로직 =====
-    let registeringTimer = null;
-    let redirectTimer = null;
-
-    const lockScroll = (lock)=> document.body.classList.toggle('modal-open', !!lock);
-
-    const openReg = ()=> { regModal.classList.add('show'); lockScroll(true); };
-    const closeReg = ()=> { regModal.classList.remove('show'); lockScroll(false); };
-    const openDone = ()=> { doneModal.classList.add('show'); lockScroll(true); };
-    const closeDone = ()=> { doneModal.classList.remove('show'); lockScroll(false); };
-
-    // 등록 버튼(비활성이어도 클릭 안내)
-    submitBtn.addEventListener('click', ()=>{
-      if(submitDisabled()){
-        // 에러 강조 + 안내
-        if(!isValidTitle(state.title)) titleInput.classList.add('error');
-        if(!hasPlace(state.place)) placeBtn.classList.add('error');
-        showToast('제목/위치를 입력해주세요.');
-        return;
-      }
-
-      openReg();
-      // 처리 시뮬레이션
-      registeringTimer = setTimeout(()=>{
-        persistPost();
-        closeReg();
-        openDone();
-        redirectTimer = setTimeout(()=>{ window.location.href='board.html'; }, 2000);
-      }, 1200);
-    });
-
-    // 등록중 취소
-    regCancel.addEventListener('click', ()=>{
-      if(registeringTimer){ clearTimeout(registeringTimer); registeringTimer=null; }
-      closeReg();
-    });
-    // 등록중 백드롭 클릭은 무시 (요구사항 반영)
-
-    // 완료 팝업: 아무 곳 클릭/ESC로 닫히며 즉시 이동
-    doneModal.addEventListener('click', ()=>{
-      if(redirectTimer){ clearTimeout(redirectTimer); }
-      closeDone();
-      window.location.href='board.html';
-    });
-
-    // ESC 동작
-    window.addEventListener('keydown', (e)=>{
-      if(e.key === 'Escape'){
-        if(regModal.classList.contains('show')) closeReg();
-        if(doneModal.classList.contains('show')){
-          if(redirectTimer){ clearTimeout(redirectTimer); }
-          closeDone(); window.location.href='board.html';
-        }
-      }
-    });
-
-    // 실제 저장
-    function persistPost(){
-      const post = {
-        id: Date.now(),
-        visibility: state.visibility,
-        title: state.title.trim(),
-        place: state.place,
-        rating: state.rating,
-        photos: state.photos.map(p => p.url),
-        content: '',
-        createdAt: new Date().toISOString()
-      };
-      const key = 'posts';
-      const list = JSON.parse(localStorage.getItem(key) || '[]');
-      list.unshift(post);
-      localStorage.setItem(key, JSON.stringify(list));
-      localStorage.removeItem('post_draft');
+  // ---------- images ----------
+  el.btnPickImage.addEventListener('click', ()=> el.fileInput.click());
+  el.fileInput.addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files || []);
+    for(const f of files){
+      if(!f.type.startsWith('image/')) continue;
+      const dataURL = await fileToDataURL(f);
+      state.images.push(dataURL);
     }
+    renderGallery();
+    e.target.value = ''; // reset for re-select
+  });
 
-    // ---- 자동 저장 ----
-    let autosaveTimer=null;
-    const scheduleAutosave = ()=>{
-      clearTimeout(autosaveTimer);
-      autosaveTimer = setTimeout(()=>saveDraft(true), 3000);
+  function fileToDataURL(file){
+    return new Promise((res,rej)=>{
+      const fr = new FileReader();
+      fr.onload = ()=> res(fr.result);
+      fr.onerror = rej;
+      fr.readAsDataURL(file);
+    });
+  }
+
+  function renderGallery(){
+    el.gallery.innerHTML = '';
+    state.images.forEach(src=>{
+      const d = document.createElement('div');
+      d.className = 'thumb';
+      d.innerHTML = `<img alt="미리보기" />`;
+      d.querySelector('img').src = src;
+      el.gallery.appendChild(d);
+    });
+  }
+
+  // ---------- align ----------
+  function setAlign(a){
+    state.align = a;
+    el.editor.classList.remove('align-left','align-center','align-right');
+    el.editor.classList.add('align-' + a);
+  }
+  el.btnAlignLeft.onclick   = ()=> setAlign('left');
+  el.btnAlignCenter.onclick = ()=> setAlign('center');
+  el.btnAlignRight.onclick  = ()=> setAlign('right');
+
+  // ---------- draft (localStorage) ----------
+  const DRAFT_KEY = 'draft.write';
+  function saveDraft(){
+    const draft = {
+      title: el.title.value,
+      place: state.place,
+      rating: state.rating,
+      images: state.images,
+      align: state.align,
+      bodyHTML: el.editor.innerHTML,
+      savedAt: Date.now()
     };
-    ['input','change'].forEach(evt=>{
-      titleInput.addEventListener(evt, scheduleAutosave);
-      photoInput.addEventListener(evt, scheduleAutosave);
-    });
-    placeBtn.addEventListener('click', ()=> setTimeout(scheduleAutosave, 0));
-    stars.addEventListener('mousedown', scheduleAutosave);
-    stars.addEventListener('touchstart', scheduleAutosave);
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    toast('임시저장 완료!');
+  }
+  function restoreDraft(){
+    try{
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if(!raw) return;
+      const d = JSON.parse(raw);
+      el.title.value = d.title || '';
+      state.place = d.place || null;
+      setPlaceText(state.place);
+      state.rating = d.rating || 0;
+      renderStars();
+      state.images = Array.isArray(d.images) ? d.images : [];
+      renderGallery();
+      setAlign(d.align || 'left');
+      if (d.bodyHTML) el.editor.innerHTML = d.bodyHTML;
+      toast('임시저장 불러왔어요');
+    }catch(e){}
+  }
+  el.btnDraft.addEventListener('click', saveDraft);
+  restoreDraft();
 
-    // ---- 초기화 ----
-    (function init(){
-      loadDraft();
-      syncSubmitDisabled();
-      setRating(state.rating || 0);
-    })();
+// ---------- place picker (modal built here) ----------
+const modal = createPlaceModal();
+document.body.appendChild(modal.root);
+el.btnPickLocation.addEventListener('click', ()=> modal.open());
 
-    window.addEventListener('beforeunload', ()=>{
-      if(registeringTimer) clearTimeout(registeringTimer);
-      if(redirectTimer) clearTimeout(redirectTimer);
-    });
-  </script>
+function setPlaceText(place){
+  if (!place){
+    el.placeText.textContent = '위치추가 (가게위치 등록 필수)';
+    el.placeText.style.color = 'rgba(0,0,0,.44)';
+  } else {
+    el.placeText.textContent = place.name;
+    el.placeText.style.color = '#000';
+  }
+}
+
+function createPlaceModal(){
+  const root = document.createElement('div');
+  root.className = 'modal';
+  root.innerHTML = `
+    <div class="sheet" role="dialog" aria-modal="true">
+      <header><strong>위치 선택</strong><button data-close>닫기</button></header>
+      <div class="list">
+        <div class="group-title">전통시장</div>
+        <div class="group" data-group="markets"></div>
+        <div class="group-title">상점</div>
+        <div class="group" data-group="places"></div>
+      </div>
+    </div>
+  `;
+
+  function render(){
+    const school  = window.MockAPI.resolveSchool(window.MockAPI.getSchoolSaved()) || {lat:37.42, lng:127.1265, radius:5_000};
+    const markets = window.MockAPI.listMarketsNear(school);
+    const places  = window.MockAPI.listPlaces();
+
+    const gM = root.querySelector('[data-group="markets"]');
+    const gP = root.querySelector('[data-group="places"]');
+    gM.innerHTML = markets.map(m=>`
+      <div class="item" data-type="market" data-id="${m.id}">
+        <div>${m.name} <small>· ${Math.round(m.distance_m)}m</small></div>
+        <small>${m.area||''}</small>
+      </div>`).join('') || `<div class="empty">근처 시장 없음</div>`;
+    gP.innerHTML = places.map(p=>`
+      <div class="item" data-type="place" data-id="${p.id}">
+        <div>${p.name} <small>· ${p.category||''}</small></div>
+        <small>⭐ ${p.rating}</small>
+      </div>`).join('') || `<div class="empty">등록된 상점 없음</div>`;
+  }
+
+  root.addEventListener('click', (e)=>{
+    if(e.target.matches('[data-close]')) close();
+    const it = e.target.closest('.item');
+    if(it){
+      const type = it.dataset.type;
+      const id   = it.dataset.id;
+      if (type === 'market'){
+        const school = window.MockAPI.resolveSchool(window.MockAPI.getSchoolSaved()) || {lat:37.42, lng:127.1265, radius:5_000};
+        const m = window.MockAPI.listMarketsNear(school).find(x=>x.id===id) || {id, name:'시장'};
+        state.place = { id: m.id, type:'market', name: m.name };
+      } else {
+        const p = window.MockAPI.listPlaces().find(x=>x.id===id) || {id, name:'가게'};
+        state.place = { id: p.id, type:'place', name: p.name };
+      }
+      setPlaceText(state.place);
+      close();
+    }
+  });
+
+  function open(){ render(); root.style.display='flex'; }
+  function close(){ root.style.display='none'; }
+
+  return { root, open, close };
+}
+
+// ---------- submit & back ----------
+el.btnSubmit.addEventListener('click', ()=>{
+  const title = el.title.value.trim();
+  const body  = el.editor.innerHTML;
+  const bodyText = stripHTML(body);
+
+  if (!title){ alert('제목을 입력하세요.'); el.title.focus(); return; }
+  if (!state.place){ alert('위치를 선택하세요.'); el.btnPickLocation.focus(); return; }
+  if (!state.rating){ alert('별점을 선택하세요.'); return; }
+  if (!bodyText){ alert('본문을 입력하세요.'); el.editor.focus(); return; }
+
+  // 📌 board.html이 읽는 스키마/키로 저장
+  const post = {
+    id: 'post_' + Date.now(),
+    author: '나',               // 필요하면 닉네임으로 교체
+    createdAt: Date.now(),      // 숫자 타임스탬프
+    title,
+    content: bodyText,          // 텍스트 본문(보드가 사용하는 필드)
+    images: state.images.slice(),
+    likes: 0,
+    comments: 0,
+
+    // 추가 메타(우리 에디터용)
+    place: state.place,
+    rating: state.rating,
+    align: state.align,
+    bodyHTML: body
+  };
+
+  // 🔑 보드와 동일한 키로 저장
+  const STORAGE_KEY = 'BOARD_POSTS';
+  const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  all.unshift(post);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+
+  // 위치별 인덱스는 기존 로직 유지
+  const key = `posts.place.${state.place.id}`;
+  const idx = JSON.parse(localStorage.getItem(key) || '[]');
+  idx.unshift(post.id);
+  localStorage.setItem(key, JSON.stringify(idx));
+
+  // 초안 제거 & 이동
+  localStorage.removeItem(DRAFT_KEY);
+  location.href = 'board.html';
+});
+
+
+  el.btnBack.addEventListener('click', ()=>{
+    const hasContent = el.title.value.trim() || stripHTML(el.editor.innerHTML) || state.images.length || state.rating || state.place;
+    if(!hasContent){
+      location.href = 'board.html';
+      return;
+    }
+    if (confirm('글쓰기를 중단할까요? (임시저장을 눌러두면 나중에 이어 쓸 수 있어요)')){
+      location.href = 'board.html';
+    }
+  });
+
+  // ---------- accessibility niceties ----------
+  $('#btnEmpty2').addEventListener('click', ()=> toast('준비중 기능이에요!'));
+  $('#btnEmpty6').addEventListener('click', ()=> toast('준비중 기능이에요!'));
+})();
+</script>
 </body>
 </html>

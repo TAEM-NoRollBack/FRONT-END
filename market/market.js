@@ -5,6 +5,116 @@
 // ------------------------------
 // 데모 데이터
 // ------------------------------
+// --- Saved toggle utils ---
+const SAVED_KEY = 'saved.items';
+
+// 요청하신 '저장됨' 아이콘 (분홍 북마크)
+const BOOKMARK_ON_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" width="26" height="32" viewBox="0 0 26 32" fill="none">
+  <path d="M6.93359 1.5H19.0664C20.3004 1.5 21.1504 1.50062 21.8096 1.5459C22.4572 1.59039 22.8015 1.67303 23.043 1.77637C23.5326 1.98614 23.905 2.28878 24.1484 2.62207L24.2451 2.7666C24.3194 2.88929 24.4005 3.091 24.4482 3.58203C24.4986 4.10025 24.5 4.78068 24.5 5.83008V30.0684C24.5 30.1246 24.4991 30.1779 24.499 30.2285C24.3707 30.1581 24.2189 30.0744 24.0371 29.9727H24.0381L13.7334 24.1963L13 23.7852L12.2666 24.1963L1.96191 29.9707L1.96094 29.9717C1.77973 30.0735 1.628 30.1571 1.5 30.2275V5.83008C1.5 4.78068 1.50142 4.10025 1.55176 3.58203C1.58755 3.21372 1.64282 3.00835 1.69922 2.87695L1.75488 2.7666C1.99077 2.37736 2.39659 2.01516 2.95605 1.77539C3.1975 1.67199 3.54251 1.59041 4.19043 1.5459C4.84961 1.50062 5.69955 1.5 6.93359 1.5Z" fill="#FF83A2" stroke="#FF83A2" stroke-width="3"/>
+</svg>`;
+const BOOKMARK_OFF_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" width="26" height="32" viewBox="0 0 26 32" fill="none">
+  <path d="M6.93359 1.5H19.0664C20.3004 1.5 21.1504 1.50062 21.8096 1.5459C22.4572 1.59039 22.8015 1.67303 23.043 1.77637C23.5326 1.98614 23.905 2.28878 24.1484 2.62207L24.2451 2.7666C24.3194 2.88929 24.4005 3.091 24.4482 3.58203C24.4986 4.10025 24.5 4.78068 24.5 5.83008V30.0684C24.5 30.1246 24.4991 30.1779 24.499 30.2285C24.3707 30.1581 24.2189 30.0744 24.0371 29.9727H24.0381L13.7334 24.1963L13 23.7852L12.2666 24.1963L1.96191 29.9707L1.96094 29.9717C1.77973 30.0735 1.628 30.1571 1.5 30.2275V5.83008C1.5 4.78068 1.50142 4.10025 1.55176 3.58203C1.58755 3.21372 1.64282 3.00835 1.69922 2.87695L1.75488 2.7666C1.99077 2.37736 2.39659 2.01516 2.95605 1.77539C3.1975 1.67199 3.54251 1.59041 4.19043 1.5459C4.84961 1.50062 5.69955 1.5 6.93359 1.5Z" stroke="#C9C9C9" stroke-width="2" fill="none"/>
+</svg>`;
+// 저장목록 load/save
+function loadSavedList() {
+  try {
+    return JSON.parse(localStorage.getItem(SAVED_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+function saveSavedList(list) {
+  try {
+    localStorage.setItem(SAVED_KEY, JSON.stringify(list));
+  } catch {}
+}
+
+// 현재 상세의 저장 payload 만들기
+function buildSavedItem(detail, scope) {
+  // 대표 이미지(가능하면 1장)
+  const thumb =
+    (Array.isArray(detail.photos) && detail.photos[0]) ||
+    (Array.isArray(detail.hero) && detail.hero[0]) ||
+    '';
+
+  return {
+    type: scope.type, // 'place' | 'market'
+    id: detail.id,
+    name: detail.name,
+    addr: detail.addr || '',
+    lat: detail.lat,
+    lng: detail.lng,
+    rating: detail.rating || 0,
+    ratingCount: detail.ratingCount || 0,
+    market_id:
+      detail.market_id ||
+      (scope.type === 'place'
+        ? document.querySelector('#name')?.dataset.marketId || ''
+        : ''),
+    thumb,
+  };
+}
+
+// 저장여부 확인
+function isSaved(scope) {
+  const list = loadSavedList();
+  return list.some((it) => it.id === scope.id && it.type === scope.type);
+}
+
+// 버튼 UI 반영(아이콘 교체)
+// 버튼 UI 반영(아이콘만 교체, 라벨 보존)
+function setSaveButtonUI(saved) {
+  const btn = document.querySelector(
+    '.quick-actions .qa[data-action="save"], .quick-actions .qa.js-save'
+  );
+  if (!btn) return;
+
+  // 최초 1회: 현재 OFF 상태 SVG 백업 (없으면 기본 OFF 아이콘)
+  if (!btn.dataset.svgOff) {
+    const svg0 = btn.querySelector('.ico svg') || btn.querySelector('svg');
+    btn.dataset.svgOff = svg0 ? svg0.outerHTML : BOOKMARK_OFF_SVG;
+  }
+
+  const nextSvg = saved ? BOOKMARK_ON_SVG : btn.dataset.svgOff;
+  const ico = btn.querySelector('.ico');
+
+  if (ico) {
+    ico.innerHTML = nextSvg;
+  } else {
+    const firstSvg = btn.querySelector('svg');
+    if (firstSvg) {
+      firstSvg.insertAdjacentHTML('afterend', nextSvg);
+      firstSvg.remove();
+    } else {
+      btn.insertAdjacentHTML('afterbegin', nextSvg);
+    }
+  }
+  btn.classList.toggle('on', saved);
+}
+
+// 토글 실행
+function toggleSave(detail, scope) {
+  const list = loadSavedList();
+  const idx = list.findIndex(
+    (it) => it.id === scope.id && it.type === scope.type
+  );
+  let saved;
+
+  if (idx >= 0) {
+    // 이미 저장됨 → 삭제
+    list.splice(idx, 1);
+    saved = false;
+  } else {
+    // 미저장 → 추가
+    list.unshift(buildSavedItem(detail, scope));
+    saved = true;
+  }
+  saveSavedList(list);
+  setSaveButtonUI(saved);
+}
+
 const DEMO_MARKETS = {
   sinhung: {
     id: 'sinhung',
@@ -1152,22 +1262,45 @@ function closePhotoModal() {
   modal.setAttribute('aria-hidden', 'true');
   qs('#modalGrid').innerHTML = '';
 }
+// 저장 버튼(상세 상단 퀵액션) 바인딩 + 초기 UI 동기화
+function installSaveToggle(detail, scope) {
+  const btn = document.querySelector(
+    '.quick-actions .qa[data-action="save"], .quick-actions .qa.js-save'
+  );
+  if (!btn) return;
+
+  // 현재 저장 여부대로 아이콘 세팅
+  setSaveButtonUI(isSaved(scope));
+
+  // 중복 방지 후 클릭 핸들러 연결
+  if (btn._saveToggleHandler) {
+    btn.removeEventListener('click', btn._saveToggleHandler);
+  }
+  btn._saveToggleHandler = (e) => {
+    e.preventDefault();
+    toggleSave(detail, scope); // localStorage 반영
+    // setSaveButtonUI는 toggleSave 내부에서 다시 호출됨
+  };
+  btn.addEventListener('click', btn._saveToggleHandler);
+}
 
 // 액션 버튼 핸들러
 function wireActions(detail, scope) {
   qsa('.quick-actions .qa').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const act = btn.dataset.action;
+    const act = btn.dataset.action;
+    const isSaveBtn = act === 'save' || btn.classList.contains('js-save');
+    if (isSaveBtn) return; // ✅ 저장 버튼은 여기서 핸들러 달지 않음
 
+    btn.addEventListener('click', () => {
       if (act === 'share') {
         navigator.clipboard?.writeText(location.href);
         alert('링크가 복사되었습니다.');
       } else if (act === 'review') {
         const itemName = detail.name;
-        const px = getParam('px'); // 현재 URL에서 'px' 파라미터를 가져옵니다.
+        const px = getParam('px');
         try {
           localStorage.setItem(
-            'navCtx:' + scope.id, // place/market 공통 id
+            'navCtx:' + scope.id,
             JSON.stringify({
               type: scope.type,
               place: scope.type === 'place' ? detail : null,
@@ -1176,17 +1309,11 @@ function wireActions(detail, scope) {
             })
           );
         } catch {}
-        // URL을 조립합니다.
         let reviewUrl = `review.html?type=${scope.type}&id=${
           scope.id
         }&name=${encodeURIComponent(itemName)}`;
-        // 만약 px 파라미터가 있었다면, 리뷰 페이지 URL에도 추가해줍니다.
-        if (px) {
-          reviewUrl += `&px=${px}`;
-        }
+        if (px) reviewUrl += `&px=${px}`;
         location.href = reviewUrl;
-      } else if (act === 'save') {
-        alert('저장 처리 (연동 예정)');
       } else if (act === 'route') {
         const { name, lat, lng } = detail;
         if (lat && lng) openKakaoMap({ name, lat, lng, mode: 'to' });
@@ -1312,7 +1439,7 @@ function applyReviewAggregateToContext(ctx) {
   // 5) 지도/액션/리뷰 UI
   await renderMapForContext(ctx);
   wireActions(ctx.mode === 'place' ? ctx.place : ctx.market, ctx.scope);
-
+  installSaveToggle(ctx.mode === 'place' ? ctx.place : ctx.market, ctx.scope);
   renderReviewHeader(REVIEWS_RAW);
   renderUgcReel(REVIEWS_RAW);
   renderReviews(REVIEWS_RAW, currentSort);

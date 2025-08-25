@@ -1,257 +1,566 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>게시판</title>
-<style>
-  :root{
-    --pink:#FF83A2;
-    --pink-soft:#FFCDDA;
-    --line:#D9D9D9;
-    --text:#000;
-    --muted:#777;
-  }
-  html,body{margin:0;height:100%;background:#fff;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
-  /* 시안 상단바 */
-  .phone{width:393px;height:852px;margin:0 auto;position:relative;overflow:hidden;background:#fff;}
-  .topbar{position:absolute;left:0;right:0;top:-17px;height:81px;background:var(--pink);border-bottom-left-radius:10px;border-bottom-right-radius:10px;}
-  .time{position:absolute;left:35px;top:15px;width:61px;height:39px;text-align:center;color:#000;font-size:20px;font-weight:700;line-height:38.64px;}
-  .pill{position:absolute;left:144px;top:17px;width:105px;height:30px;background:#000;border-radius:15px;}
-  .title{position:absolute;left:173px;top:78px;color:#000;font-size:18px;line-height:38.64px;}
-  .banner{position:absolute;left:26px;top:138px;width:341px;height:59px;background:rgba(255,131,162,.4);border-radius:6px;}
-  .banner .txt{position:absolute;left:19px;top:8px;font-weight:600;font-size:18px;}
-  .banner .link{position:absolute;right:12px;bottom:2px;color:var(--pink);font-size:10px;font-weight:600;}
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>게시판</title>
+		<style>
+			:root {
+				--pink: #ff83a2;
+				--pink-soft: #ffcdda;
+				--line: #d9d9d9;
+				--text: #000;
+				--muted: #777;
+			}
+			html,
+			body {
+				margin: 0;
+				height: 100%;
+				background: #fff;
+				font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+					Roboto, Arial, sans-serif;
+			}
+			/* 시안 상단바 */
+			.phone {
+				width: 393px;
+				height: 852px;
+				margin: 0 auto;
+				position: relative;
+				overflow: hidden;
+				background: #fff;
+			}
+			.topbar {
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: -17px;
+				height: 81px;
+				background: var(--pink);
+				border-bottom-left-radius: 10px;
+				border-bottom-right-radius: 10px;
+			}
+			.time {
+				position: absolute;
+				left: 35px;
+				top: 15px;
+				width: 61px;
+				height: 39px;
+				text-align: center;
+				color: #000;
+				font-size: 20px;
+				font-weight: 700;
+				line-height: 38.64px;
+			}
+			.pill {
+				position: absolute;
+				left: 144px;
+				top: 17px;
+				width: 105px;
+				height: 30px;
+				background: #000;
+				border-radius: 15px;
+			}
+			.title {
+				position: absolute;
+				left: 173px;
+				top: 78px;
+				color: #000;
+				font-size: 18px;
+				line-height: 38.64px;
+			}
+			/* 뒤로가기 버튼 (글쓰기 페이지와 동일 위치 느낌) */
+			.back {
+				position: absolute;
+				left: 12px;
+				top: 78px;
+				background: none;
+				border: 0;
+				appearance: none; /* all:unset 제거 */
+				cursor: pointer;
+				color: #000;
+				font-size: 18px;
+				font-family: inherit;
+				line-height: 1; /* 글자 보이게 */
+				padding: 6px 8px;
+				border-radius: 8px;
+				z-index: 5; /* 겹침 방지용 */
+			}
+			.back:focus {
+				outline: 2px solid rgba(0, 0, 0, 0.2);
+				outline-offset: 2px;
+			}
 
-  /* 리스트 스크롤 영역 */
-  .scroll{
-    position:absolute;left:0;right:0;top:230px;bottom:0;
-    overflow:auto;scroll-behavior:smooth;padding:0 16px 92px;
-  }
-  .divider{height:2px;background:#D9D9D9;margin:12px 0;}
+			.banner {
+				position: absolute;
+				left: 26px;
+				top: 138px;
+				width: 341px;
+				height: 59px;
+				background: rgba(255, 131, 162, 0.4);
+				border-radius: 6px;
+			}
+			.banner .txt {
+				position: absolute;
+				left: 19px;
+				top: 8px;
+				font-weight: 600;
+				font-size: 16.5px;
+			}
+			.banner .link {
+				position: absolute;
+				right: 12px;
+				bottom: 4px;
+				color: var(--pink);
+				font-size: 13px;
+				font-weight: 600;
+			}
 
-  /* 포스트 카드 */
-  .post{position:relative;border-bottom:1px solid var(--line);padding:18px 6px 14px;}
-  .post:last-child{border-bottom:none;}
-  .post-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-  .avatar{width:38px;height:38px;border-radius:50%;background:#D9D9D9;flex:0 0 38px;}
-  .who{display:flex;flex-direction:column;gap:2px;}
-  .name{font-size:12px;font-weight:500;}
-  .ago{font-size:10px;color:#555;}
-  .more{position:absolute;right:0;top:14px;width:24px;height:28px;border:none;background:transparent;cursor:pointer}
-  .more i{display:block;width:4px;height:4px;border-radius:50%;background:#C9C9C9;margin:3px auto;}
-  .title2{font-size:18px;font-weight:600;margin:2px 0 8px;}
-  .content{font-size:14px;line-height:21px;margin-bottom:10px;}
+			/* 리스트 스크롤 영역 */
+			.scroll {
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: 230px;
+				bottom: 0;
+				overflow: auto;
+				scroll-behavior: smooth;
+				padding: 0 16px 92px;
+			}
+			.divider {
+				height: 2px;
+				background: #d9d9d9;
+				margin: 12px 0;
+			}
 
-  /* 사진 그리드(최대 5) */
-  .photos{display:grid;gap:6px;margin-bottom:12px;}
-  .photos img{width:100%;height:100%;object-fit:cover;border-radius:6px;background:#D9D9D9;}
-  .p-1{grid-template-columns:1fr;grid-auto-rows:220px;}
-  .p-2{grid-template-columns:1fr 1fr;grid-auto-rows:170px;}
-  .p-3{grid-template-columns:1fr 1fr;grid-template-areas:"a b" "a c";grid-auto-rows:110px;}
-  .p-3 img:nth-child(1){grid-area:a;height:226px;}
-  .p-4{grid-template-columns:1fr 1fr;grid-auto-rows:120px;}
-  .p-5{grid-template-columns:1fr 1fr;grid-template-areas:
-        "a b" "a c" "d e";grid-auto-rows:110px;}
-  .p-5 img:nth-child(1){grid-area:a;height:226px;}
-  /* 하단 액션 */
-  .actions{display:flex;align-items:center;gap:10px;margin:6px 0 2px;}
-  .heart, .comment{display:flex;align-items:center;gap:6px;font-size:13px;}
-  .heart svg{width:18px;height:16px;fill:var(--pink);}
-  .comment svg{width:20px;height:18px;stroke:var(--pink);fill:none;}
-  .write-wrap{display:flex;justify-content:center;margin:18px 0;}
-  .write-btn{background:var(--pink-soft);border:none;border-radius:100px;padding:12px 28px;font-weight:600;font-size:18px;cursor:pointer}
+			/* 포스트 카드 */
+			.post {
+				position: relative;
+				border-bottom: 1px solid var(--line);
+				padding: 18px 6px 14px;
+			}
+			.post:last-child {
+				border-bottom: none;
+			}
+			.post-head {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				margin-bottom: 12px;
+			}
+			.avatar {
+				width: 38px;
+				height: 38px;
+				border-radius: 50%;
+				background: #d9d9d9;
+				flex: 0 0 38px;
+			}
+			.who {
+				display: flex;
+				flex-direction: column;
+				gap: 2px;
+			}
+			.name {
+				font-size: 12px;
+				font-weight: 500;
+			}
+			.ago {
+				font-size: 10px;
+				color: #555;
+			}
+			.more {
+				position: absolute;
+				right: 0;
+				top: 14px;
+				width: 24px;
+				height: 28px;
+				border: none;
+				background: transparent;
+				cursor: pointer;
+			}
+			.more i {
+				display: block;
+				width: 4px;
+				height: 4px;
+				border-radius: 50%;
+				background: #c9c9c9;
+				margin: 3px auto;
+			}
+			.title2 {
+				font-size: 18px;
+				font-weight: 600;
+				margin: 2px 0 8px;
+			}
+			.content {
+				font-size: 14px;
+				line-height: 21px;
+				margin-bottom: 10px;
+			}
 
-  /* 액션시트(시안 모양) */
-  .sheet-dim{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.35);z-index:1000;}
-  .sheet{width:326px;}
-  .sheet .box, .sheet .cancel{
-    background:#fff;border:2px solid var(--pink);border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.25);
-  }
-  .sheet .box{height:136px;}
-  .sheet .cancel{height:54px;margin-top:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
-  .sheet .row{height:45px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;user-select:none;}
-  .sheet .row + .row{border-top:2px solid var(--pink);}
-  .sheet .cancel{cursor:pointer;}
-</style>
-</head>
-<body>
-<div class="phone" id="phone">
-  <!-- 상단 시안 요소들 -->
-  <div class="topbar"></div>
-  <div class="time">2:21</div>
-  <div class="pill"></div>
-  <div class="title">게시판</div>
-  <div class="banner">
-    <div class="txt">블로그 리뷰를 작성하고 리워드 받아가세요!</div>
-    <div class="link">리워드 시스템 알아보기</div>
-  </div>
+			/* 사진 그리드(최대 5) */
+			.photos {
+				display: grid;
+				gap: 6px;
+				margin-bottom: 12px;
+			}
+			.photos img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				border-radius: 6px;
+				background: #d9d9d9;
+			}
+			.p-1 {
+				grid-template-columns: 1fr;
+				grid-auto-rows: 220px;
+			}
+			.p-2 {
+				grid-template-columns: 1fr 1fr;
+				grid-auto-rows: 170px;
+			}
+			.p-3 {
+				grid-template-columns: 1fr 1fr;
+				grid-template-areas: 'a b' 'a c';
+				grid-auto-rows: 110px;
+			}
+			.p-3 img:nth-child(1) {
+				grid-area: a;
+				height: 226px;
+			}
+			.p-4 {
+				grid-template-columns: 1fr 1fr;
+				grid-auto-rows: 120px;
+			}
+			.p-5 {
+				grid-template-columns: 1fr 1fr;
+				grid-template-areas: 'a b' 'a c' 'd e';
+				grid-auto-rows: 110px;
+			}
+			.p-5 img:nth-child(1) {
+				grid-area: a;
+				height: 226px;
+			}
+			/* 하단 액션 */
+			.actions {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				margin: 6px 0 2px;
+			}
+			.heart,
+			.comment {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				font-size: 13px;
+			}
+			.heart svg {
+				width: 18px;
+				height: 16px;
+				fill: var(--pink);
+			}
+			.comment svg {
+				width: 20px;
+				height: 18px;
+				stroke: var(--pink);
+				fill: none;
+			}
+			.write-wrap {
+				display: flex;
+				justify-content: center;
+				margin: 18px 0;
+			}
+			.write-btn {
+				background: var(--pink-soft);
+				border: none;
+				border-radius: 100px;
+				padding: 12px 28px;
+				font-weight: 600;
+				font-size: 18px;
+				cursor: pointer;
+        margin-bottom: 20px; /* 밑으로 조금 더 내리기 */
+			}
 
-  <!-- 스크롤 영역 -->
-  <div class="scroll" id="list"></div>
+			/* 액션시트(시안 모양) */
+			.sheet-dim {
+				position: fixed;
+				inset: 0;
+				display: none;
+				align-items: center;
+				justify-content: center;
+				background: rgba(0, 0, 0, 0.35);
+				z-index: 1000;
+			}
+			.sheet {
+				width: 326px;
+			}
+			.sheet .box,
+			.sheet .cancel {
+				background: #fff;
+				border: 2px solid var(--pink);
+				border-radius: 10px;
+				box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+			}
+			.sheet .box {
+				height: 136px;
+			}
+			.sheet .cancel {
+				height: 54px;
+				margin-top: 10px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 18px;
+			}
+			.sheet .row {
+				height: 45px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 18px;
+				cursor: pointer;
+				user-select: none;
+			}
+			.sheet .row + .row {
+				border-top: 2px solid var(--pink);
+			}
+			.sheet .cancel {
+				cursor: pointer;
+			}
+      /* 리스트가 버튼에 가려지지 않게 여유 주기(기존 padding-bottom 덮어씀) */
+.scroll{ padding-bottom:140px; }
 
-  <!-- 액션시트 -->
-  <div class="sheet-dim" id="sheetDim" aria-hidden="true">
-    <div class="sheet" role="dialog" aria-modal="true" aria-label="게시글 더보기">
-      <div class="box">
-        <div class="row" id="actEdit">수정하기</div>
-        <div class="row" id="actDelete">삭제하기</div>
-        <div class="row" id="actShare">공유하기</div>
-      </div>
-      <div class="cancel" id="actCancel">취소</div>
-    </div>
-  </div>
-</div>
-
-<script>
-/* ============ 데이터 저장소 ============ */
-const STORAGE_KEY = 'BOARD_POSTS';
-/** @type {{id:string,author:string,createdAt:number,title:string,content:string,images:string[],likes:number,comments:number}[]} */
-function loadPosts(){
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(!raw){
-    // 데모 데이터 1개 주입(처음만)
-    const seed=[{
-      id:'demo-1',
-      author:'양동근4',
-      createdAt:Date.now()-1000*60*60*3,
-      title:'금광시장',
-      content:'오늘은 학교근처 금광시장에 방문해서 친구들과 같이 저녁을 먹었어요. 금광시장 맛집으로 소문난 여기 족발집은 역시 소문대로 쫄깃하고 감칠맛이 대박이었어요!',
-      images:[], // 회색 더미 대신 비워둠
-      likes:7, comments:3
-    }];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
-    return seed;
-  }
-  try{ return JSON.parse(raw); }catch{ return []; }
+/* 하단 고정처럼 보이게: 스크롤 컨테이너 기준 sticky */
+.write-wrap{
+  position: sticky;
+  bottom: 30px;
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  margin: 0;              /* 기존 margin:18px 0 무시 */
+  pointer-events: none;   /* 뒤 콘텐츠 클릭 가능 */
 }
-function savePosts(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
 
-/* ============ 도우미 ============ */
-function timeAgo(ts){
-  const m = Math.floor((Date.now()-ts)/60000);
-  if(m<60) return `${m||1}분 전`;
-  const h = Math.floor(m/60);
-  if(h<24) return `${h}시간 전`;
-  const d = Math.floor(h/24);
-  return `${d}일 전`;
-}
-function createPhotoGrid(imgs){
-  const wrap = document.createElement('div');
-  const n = Math.min(imgs.length,5);
-  wrap.className = `photos p-${n||1}`;
-  (n?imgs:Array(1).fill('')).slice(0,5).forEach((src,i)=>{
-    const img = document.createElement('img');
-    if(src) img.src = src;
-    wrap.appendChild(img);
-  });
-  return wrap;
+/* 버튼만 클릭되도록 */
+.write-wrap .write-btn{
+  pointer-events: auto;
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
 }
 
-/* ============ 렌더 ============ */
-const listEl = document.getElementById('list');
-let posts = loadPosts();
-function render(){
-  listEl.innerHTML = '';
-  posts.slice().reverse().forEach(post=>{
-    const card = document.createElement('article');
-    card.className='post';
-    card.dataset.id = post.id;
-    card.innerHTML = `
+		</style>
+	</head>
+	<body>
+		<div class="phone" id="phone">
+			<!-- 상단 시안 요소들 -->
+			<div class="topbar"></div>
+			<div class="time">2:21</div>
+			<div class="pill"></div>
+			<div class="title">게시판</div>
+			<button id="btnBack" class="back" aria-label="뒤로가기">〈</button>
+			<div class="banner">
+				<div class="txt">블로그 리뷰를 작성하고 리워드 받아가세요!</div>
+				<div class="link">리워드 시스템 알아보기</div>
+			</div>
+
+			<!-- 스크롤 영역 -->
+			<div class="scroll" id="list"></div>
+
+			<!-- 액션시트 -->
+			<div class="sheet-dim" id="sheetDim" aria-hidden="true">
+				<div
+					class="sheet"
+					role="dialog"
+					aria-modal="true"
+					aria-label="게시글 더보기"
+				>
+					<div class="box">
+						<div class="row" id="actEdit">수정하기</div>
+						<div class="row" id="actDelete">삭제하기</div>
+						<div class="row" id="actShare">공유하기</div>
+					</div>
+					<div class="cancel" id="actCancel">취소</div>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			/* ============ 데이터 저장소 ============ */
+			const STORAGE_KEY = 'BOARD_POSTS';
+			/** @type {{id:string,author:string,createdAt:number,title:string,content:string,images:string[],likes:number,comments:number}[]} */
+			function loadPosts() {
+				const raw = localStorage.getItem(STORAGE_KEY);
+				if (!raw) {
+					// 데모 데이터 1개 주입(처음만)
+					const seed = [
+						{
+							id: 'demo-1',
+							author: '양동근4',
+							createdAt: Date.now() - 1000 * 60 * 60 * 3,
+							title: '금광시장',
+							content:
+								'오늘은 학교근처 금광시장에 방문해서 친구들과 같이 저녁을 먹었어요. 금광시장 맛집으로 소문난 여기 족발집은 역시 소문대로 쫄깃하고 감칠맛이 대박이었어요!',
+							images: [], // 회색 더미 대신 비워둠
+							likes: 7,
+							comments: 3,
+						},
+					];
+					localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
+					return seed;
+				}
+				try {
+					return JSON.parse(raw);
+				} catch {
+					return [];
+				}
+			}
+			function savePosts(arr) {
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+			}
+
+			/* ============ 도우미 ============ */
+			function timeAgo(ts) {
+				const m = Math.floor((Date.now() - ts) / 60000);
+				if (m < 60) return `${m || 1}분 전`;
+				const h = Math.floor(m / 60);
+				if (h < 24) return `${h}시간 전`;
+				const d = Math.floor(h / 24);
+				return `${d}일 전`;
+			}
+			function createPhotoGrid(imgs) {
+				const wrap = document.createElement('div');
+				const n = Math.min(imgs.length, 5);
+				wrap.className = `photos p-${n || 1}`;
+				(n ? imgs : Array(1).fill('')).slice(0, 5).forEach((src, i) => {
+					const img = document.createElement('img');
+					if (src) img.src = src;
+					wrap.appendChild(img);
+				});
+				return wrap;
+			}
+
+			/* ============ 렌더 ============ */
+			const listEl = document.getElementById('list');
+			let posts = loadPosts();
+			function render() {
+				listEl.innerHTML = '';
+				posts
+					.slice()
+					.reverse()
+					.forEach((post) => {
+						const card = document.createElement('article');
+						card.className = 'post';
+						card.dataset.id = post.id;
+						card.innerHTML = `
       <button class="more" aria-label="더보기">
         <i></i><i></i><i></i>
       </button>
       <div class="post-head">
         <div class="avatar" aria-hidden="true"></div>
         <div class="who">
-          <div class="name">${post.author||'익명'}</div>
+          <div class="name">${post.author || '익명'}</div>
           <div class="ago">${timeAgo(post.createdAt)}</div>
         </div>
       </div>
-      <div class="title2">${post.title||''}</div>
-      <div class="content">${(post.content||'').replace(/\n/g,'<br>')}</div>
+      <div class="title2">${post.title || ''}</div>
+      <div class="content">${(post.content || '').replace(/\n/g, '<br>')}</div>
     `;
-    card.appendChild(createPhotoGrid(post.images||[]));
-    const act = document.createElement('div');
-    act.className='actions';
-    act.innerHTML = `
+						card.appendChild(createPhotoGrid(post.images || []));
+						const act = document.createElement('div');
+						act.className = 'actions';
+						act.innerHTML = `
       <span class="heart" title="좋아요">
         <svg viewBox="0 0 18 16"><path d="M9 3c0 0 0 0 .76-1C10.64.84 11.94 0 13.5 0 15.99 0 18 2.01 18 4.5c0 .93-.28 1.79-.76 2.5C16.43 8.21 9 16 9 16S1.57 8.21.76 7C.28 6.29 0 5.43 0 4.5 0 2.01 2.01 0 4.5 0 6.06 0 7.37.84 8.24 2 9 3 9 3 9 3Z"/></svg>
-        <span>${post.likes||0}</span>
+        <span>${post.likes || 0}</span>
       </span>
       <span class="comment" title="댓글">
         <svg viewBox="0 0 20 18"><path d="M10 4s0 0-.76-1C8.36 1.84 7.06 1 5.5 1A4.5 4.5 0 0 0 1 5.5c0 .93.28 1.79.76 2.5C2.57 9.21 10 17 10 17M10 4s0 0 .76-1C11.64 1.84 12.94 1 14.5 1A4.5 4.5 0 0 1 19 5.5c0 .93-.28 1.79-.76 2.5C17.43 9.21 10 17 10 17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span>${post.comments||0}</span>
+        <span>${post.comments || 0}</span>
       </span>
     `;
-    card.appendChild(act);
-    listEl.appendChild(card);
-  });
+						card.appendChild(act);
+						listEl.appendChild(card);
+					});
 
-  // 중간에 ‘블로그 리뷰쓰기’ 버튼(시안 위치 유사)
-  const writeWrap = document.createElement('div');
-  writeWrap.className = 'write-wrap';
-  writeWrap.innerHTML = `<button class="write-btn" id="goWrite">블로그 리뷰쓰기</button>`;
-  listEl.appendChild(writeWrap);
-}
-render();
+				// 중간에 ‘블로그 리뷰쓰기’ 버튼(시안 위치 유사)
+				const writeWrap = document.createElement('div');
+				writeWrap.className = 'write-wrap';
+				writeWrap.innerHTML = `<button class="write-btn" id="goWrite">블로그 리뷰쓰기</button>`;
+				listEl.appendChild(writeWrap);
+			}
+			render();
 
-/* ============ 액션시트 ============ */
-const sheetDim = document.getElementById('sheetDim');
-let currentId = null;
+			/* ============ 액션시트 ============ */
+			const sheetDim = document.getElementById('sheetDim');
+			let currentId = null;
 
-function openSheet(id){
-  currentId = id;
-  sheetDim.style.display='flex';
-  sheetDim.setAttribute('aria-hidden','false');
-}
-function closeSheet(){
-  sheetDim.style.display='none';
-  sheetDim.setAttribute('aria-hidden','true');
-  currentId = null;
-}
-listEl.addEventListener('click',(e)=>{
-  const moreBtn = e.target.closest('.more');
-  const writeBtn = e.target.closest('#goWrite');
-  if(moreBtn){
-    const postId = moreBtn.closest('.post').dataset.id;
-    openSheet(postId);
-  }else if(writeBtn){
-    location.href = 'blog-write.html';
-  }
-});
-document.getElementById('actCancel').onclick = closeSheet;
-sheetDim.addEventListener('click',(e)=>{ if(e.target===sheetDim) closeSheet(); });
+			function openSheet(id) {
+				currentId = id;
+				sheetDim.style.display = 'flex';
+				sheetDim.setAttribute('aria-hidden', 'false');
+			}
+			function closeSheet() {
+				sheetDim.style.display = 'none';
+				sheetDim.setAttribute('aria-hidden', 'true');
+				currentId = null;
+			}
+			listEl.addEventListener('click', (e) => {
+				const moreBtn = e.target.closest('.more');
+				const writeBtn = e.target.closest('#goWrite');
+				if (moreBtn) {
+					const postId = moreBtn.closest('.post').dataset.id;
+					openSheet(postId);
+				} else if (writeBtn) {
+					location.href = 'blog-write.html';
+				}
+			});
+			document.getElementById('actCancel').onclick = closeSheet;
+			sheetDim.addEventListener('click', (e) => {
+				if (e.target === sheetDim) closeSheet();
+			});
 
-/* 수정 */
-document.getElementById('actEdit').onclick = ()=>{
-  if(!currentId) return;
-  location.href = `blog-write.html?id=${encodeURIComponent(currentId)}`;
-};
-/* 삭제 */
-document.getElementById('actDelete').onclick = ()=>{
-  if(!currentId) return;
-  if(confirm('이 게시글을 삭제할까요?')){
-    posts = posts.filter(p=>p.id!==currentId);
-    savePosts(posts);
-    render();
-    closeSheet();
-  }
-};
-/* 공유 */
-document.getElementById('actShare').onclick = async ()=>{
-  if(!currentId) return;
-  const url = location.origin ? (location.origin + location.pathname + `#${currentId}`) : `#${currentId}`;
-  try{
-    if(navigator.share){
-      await navigator.share({title:'게시글 공유', text:'게시글을 공유합니다', url});
-    }else{
-      await navigator.clipboard.writeText(url);
-      alert('링크가 복사되었습니다.');
-    }
-  }catch(_){}
-  closeSheet();
-};
-</script>
-</body>
+			/* 수정 */
+			document.getElementById('actEdit').onclick = () => {
+				if (!currentId) return;
+				location.href = `blog-write.html?id=${encodeURIComponent(currentId)}`;
+			};
+			/* 삭제 */
+			document.getElementById('actDelete').onclick = () => {
+				if (!currentId) return;
+				if (confirm('이 게시글을 삭제할까요?')) {
+					posts = posts.filter((p) => p.id !== currentId);
+					savePosts(posts);
+					render();
+					closeSheet();
+				}
+			};
+			/* 공유 */
+			document.getElementById('actShare').onclick = async () => {
+				if (!currentId) return;
+				const url = location.origin
+					? location.origin + location.pathname + `#${currentId}`
+					: `#${currentId}`;
+				try {
+					if (navigator.share) {
+						await navigator.share({
+							title: '게시글 공유',
+							text: '게시글을 공유합니다',
+							url,
+						});
+					} else {
+						await navigator.clipboard.writeText(url);
+						alert('링크가 복사되었습니다.');
+					}
+				} catch (_) {}
+				closeSheet();
+			};
+			document.getElementById('btnBack').addEventListener('click', () => {
+				location.href = '../mainpage/home.html';
+			});
+			document
+				.querySelector('.banner .txt')
+				.addEventListener(
+					'click',
+					() => (location.href = '../mypage/reward.html')
+				);
+		</script>
+	</body>
 </html>

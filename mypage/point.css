@@ -1,10 +1,10 @@
-:root{
-  --app-w:393px;
-  --app-h:852px;
-  --brand:#ff83a2;
-  --ink:#000;
-  --border:#ececec;
-  --content-w:320px;
+:root {
+  --app-w: 393px;
+  --app-h: 852px;
+  --brand: #ff83a2;
+  --ink: #000;
+  --border: #ececec;
+  --content-w: 320px;
 }
 
 * {
@@ -71,30 +71,30 @@ body {
   font-size: 14px;
   font-weight: 700;
 }
-.guide-link{
-  display:inline-block;
-  width:58px;
-  height:38px;
-  flex-shrink:0;
+.guide-link {
+  display: inline-block;
+  width: 58px;
+  height: 38px;
+  flex-shrink: 0;
 
-  color:#FF83A2;
-  text-align:center;
-  font-family:Pretendard;
-  font-size:11px;
-  font-style:normal;
-  font-weight:300;
-  line-height:38.644px; /* 351.306% */
+  color: #ff83a2;
+  text-align: center;
+  font-family: Pretendard;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 300;
+  line-height: 38.644px; /* 351.306% */
 
   /* ↓ 밑줄을 글자랑 '완전 달라붙게' */
   text-decoration: underline;
-  text-decoration-color: #FF83A2;
+  text-decoration-color: #ff83a2;
   text-decoration-thickness: 1px;
-  text-underline-offset: 5px;   /* gap = 0 */
+  text-underline-offset: 5px; /* gap = 0 */
   text-decoration-skip-ink: none; /* g, y 같은 자소 밑에서도 끊김 없이 */
 }
-.main{
+.main {
   overflow-y: auto;
-  overflow-x: hidden;   /* ✅ 하단바 위 수평 스크롤바 제거 */
+  overflow-x: hidden; /* ✅ 하단바 위 수평 스크롤바 제거 */
 }
 
 .balance-row {
@@ -229,7 +229,7 @@ body {
   position: sticky;
   bottom: 0;
   z-index: 9;
-  background: #fff;
+  background: #f7f6f7;
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-around;

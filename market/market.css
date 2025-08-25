@@ -47,7 +47,6 @@
 /* 시장 마커일 때 배지 테두리 색상 하늘색으로 변경 */
 .map-label.market .badge {
   border-color: #59f1ff;
-  font-weight: 700;
 }
 
 .kakao_map_custom_overlay {

@@ -11,19 +11,15 @@ const MARKET_CATALOG = [
 
 /* === 헬퍼: 저장된 학교 정보 가져오기 === */
 function getSavedSchool() {
-  // 1. 최신 통합 프로필('onboarding_profile')에서 학교 정보를 먼저 확인합니다.
   const profileRaw = localStorage.getItem('onboarding_profile');
   if (profileRaw) {
     try {
       const profile = JSON.parse(profileRaw);
       if (profile && profile.school) {
-        // schoolId와 school 이름을 반환합니다.
         return { id: profile.schoolId || '', name: profile.school };
       }
     } catch {}
   }
-
-  // 2. (하위 호환) 통합 프로필이 없을 경우, 이전 방식의 데이터를 확인합니다.
   const a = localStorage.getItem('onboarding.school');
   if (a) {
     try {
@@ -36,8 +32,45 @@ function getSavedSchool() {
   const b = localStorage.getItem('schoolName');
   if (b) return { id: b, name: b };
 
-  // 3. 모든 정보가 없으면 기본값(을지대)을 반환합니다.
   return { id: 'eulji', name: '을지대' };
+}
+
+/* === 학교 → 좌표 매핑(글로벌에서 쓰게 별도 정의) === */
+function resolveSchool(input) {
+  const catalog = [
+    {
+      ids: ['eulji', '을지대', '을지대학교 성남캠퍼스'],
+      name: '을지대',
+      lat: 37.4597,
+      lng: 127.1652,
+    },
+    {
+      ids: ['gachon', '가천대학교', '가천대학교 글로벌캠퍼스'],
+      name: '가천대학교',
+      lat: 37.45125,
+      lng: 127.129277,
+    },
+    {
+      ids: ['shingu', 'singu', '신구대학교', '신구대'],
+      name: '신구대학교',
+      lat: 37.446899,
+      lng: 127.167517,
+    },
+    {
+      ids: ['dongseoul', 'donseoul', '동서울대학교'],
+      name: '동서울대학교',
+      lat: 37.45944,
+      lng: 127.12944,
+    },
+  ];
+  const idKey = (input?.id || '').toString().toLowerCase().replace(/\s+/g, '');
+  const nameKey = (input?.name || '').toString().trim();
+  let item =
+    catalog.find((x) => x.ids.some((k) => k.toLowerCase() === idKey)) ||
+    catalog.find((x) => x.ids.includes(nameKey)) ||
+    catalog.find((x) => nameKey.includes(x.name)) ||
+    catalog[0];
+  return { ...item };
 }
 
 /* === 거리/최근접 시장 유틸 === */
@@ -74,7 +107,6 @@ function nearestMarketFor(lat, lng) {
 
 /* === 상세 페이지 링크 빌더 === */
 function buildDetailHref(r) {
-  // 가게 상세 표시용 데이터 (좌표 포함!)
   const placeData = {
     name: r.name,
     rating: r.rating,
@@ -85,7 +117,6 @@ function buildDetailHref(r) {
     lng: r.lng,
   };
 
-  // 가장 가까운 시장
   const nearest =
     typeof r.lat === 'number' && typeof r.lng === 'number'
       ? nearestMarketFor(r.lat, r.lng)
@@ -95,15 +126,11 @@ function buildDetailHref(r) {
   u.searchParams.set('place', r.id);
   u.searchParams.set('market', nearest.id);
 
-  // ✅ 좌표를 쿼리에도 *직접* 실어 보낸다 (market.html 안전 장치)
   if (typeof r.lat === 'number' && typeof r.lng === 'number') {
     u.searchParams.set('lat', r.lat);
     u.searchParams.set('lng', r.lng);
   }
-
-  // ✅ px에도 좌표를 넣어 둔다 (이중 안전망)
   u.searchParams.set('px', pack(placeData));
-
   return u.toString();
 }
 
@@ -117,17 +144,132 @@ function buildDetailHref(r) {
     nearbyTitle.textContent = `${saved.name || '을지대'} 주변 맛집`;
 })();
 
-/* === 검색 & 칩(데모) === */
-document.querySelector('.btn-search')?.addEventListener('click', () => {
-  const q = document.getElementById('q')?.value.trim();
-  if (!q) return;
-  alert(`'${q}' 검색 준비 중입니다 (백엔드 연동 예정).`);
-});
-document.querySelectorAll('.chip').forEach((ch) =>
-  ch.addEventListener('click', () => {
-    alert(`필터 '${ch.textContent.trim()}' 적용 (백엔드 연동 예정)`);
-  })
-);
+/* === 검색 UX: 버튼 + Enter로 research.html 이동 === */
+(function wireSearchBar() {
+  const $q = document.getElementById('q');
+  const goSearch = () => {
+    const keyword = $q?.value.trim() || '';
+    const url = new URL('research.html', location.href);
+    url.searchParams.set('mode', 'search');
+    if (keyword) url.searchParams.set('keyword', keyword);
+    url.searchParams.set('focus', '1'); // 입력에 포커스
+    location.href = url.toString();
+  };
+  document.querySelector('.btn-search')?.addEventListener('click', goSearch);
+  $q?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      goSearch();
+    }
+  });
+})();
+
+/* === 칩 → research.html 라우팅 === */
+(function wireChips() {
+  const chips = document.querySelectorAll('.chips-row .chip');
+
+  const withGeo = (cb) => {
+    const saved = getSavedSchool();
+    const school = resolveSchool(saved);
+    const fallback = { latitude: school.lat, longitude: school.lng };
+    if (!navigator.geolocation) return cb(fallback, true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => cb(coords, false),
+      () => cb(fallback, true),
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+  };
+
+  const goResearch = (params = {}) => {
+    const url = new URL('research.html', location.href);
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') {
+        url.searchParams.set(k, String(v));
+      }
+    });
+    location.href = url.toString();
+  };
+
+  chips.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const label = btn.textContent.trim();
+
+      // 상세검색(필터) → 검색 화면으로
+      if (btn.classList.contains('chip--filter')) {
+        goResearch({ mode: 'search', focus: '1' });
+        return;
+      }
+
+      // 내 주변 전통시장
+      if (label.includes('내 주변 전통시장')) {
+        withGeo((c) =>
+          goResearch({
+            mode: 'nearby',
+            scope: 'market',
+            lat: c.latitude,
+            lng: c.longitude,
+          })
+        );
+        return;
+      }
+
+      // 내 주변 맛집
+      if (label.includes('내 주변 맛집')) {
+        withGeo((c) =>
+          goResearch({
+            mode: 'nearby',
+            scope: 'place',
+            lat: c.latitude,
+            lng: c.longitude,
+          })
+        );
+        return;
+      }
+
+      // 점심식사(가까운 점심 카테고리)
+      if (label.includes('점심')) {
+        withGeo((c) =>
+          goResearch({
+            mode: 'category',
+            scope: 'place',
+            cat: 'lunch',
+            lat: c.latitude,
+            lng: c.longitude,
+          })
+        );
+        return;
+      }
+
+      // 신규 맛집
+      if (label.includes('신규')) {
+        withGeo((c) =>
+          goResearch({
+            mode: 'category',
+            scope: 'place',
+            cat: 'new',
+            lat: c.latitude,
+            lng: c.longitude,
+          })
+        );
+        return;
+      }
+
+      // 학교 주변 맛집 (칩 문구가 '을지대 맛집'이어도 실제 저장된 학교 기준)
+      if (label.includes('맛집') && label.includes('대')) {
+        const saved = getSavedSchool();
+        goResearch({
+          mode: 'school',
+          scope: 'place',
+          school: saved.id || saved.name || 'eulji',
+        });
+        return;
+      }
+
+      // 그 외 텍스트는 키워드 검색으로
+      goResearch({ mode: 'search', keyword: label, focus: '1' });
+    });
+  });
+})();
 
 /* === 프론트 저장용 샘플 데이터 === */
 const initialRestaurants = [
@@ -140,10 +282,8 @@ const initialRestaurants = [
     ratingCnt: 23,
     badges: [],
     desc: '김치찌개가 진하고 깔끔해요. 가까운 시장에서 매일 아침 재료를 공수!',
-    // ✅ 좌표 (예: 금광시장 쪽)
     lat: 37.4502,
     lng: 127.1599,
-    // 선택: 사진이 있으면 두 장까지 갤러리에 표시
     photos: [
       'https://picsum.photos/seed/h1/600/400',
       'https://picsum.photos/seed/h2/600/400',
@@ -158,7 +298,6 @@ const initialRestaurants = [
     ratingCnt: 23,
     badges: ['한식 • 중식', '도보 6분'],
     desc: '얼얼한 맛이 매력! 캠퍼스에서 도보 6분.',
-    // ✅ 좌표 (예: 신흥시장 쪽)
     lat: 37.4422,
     lng: 127.1301,
     photos: [
@@ -275,7 +414,6 @@ function createCard(r) {
   const $ph2 = document.createElement('div');
   $ph1.className = 'ph';
   $ph2.className = 'ph';
-  // 사진이 있으면 표시
   if (Array.isArray(r.photos) && r.photos[0])
     $ph1.style.backgroundImage = `url('${r.photos[0]}')`;
   if (Array.isArray(r.photos) && r.photos[1])
@@ -333,7 +471,7 @@ window.addRestaurant = function addRestaurant(newItem) {
     ratingCnt: 1,
     badges: [],
     desc: '',
-    ...newItem, // lat/lng, photos 등 덮어쓰기
+    ...newItem,
   };
   restaurants.push(item);
   saveRestaurants(restaurants);
@@ -345,26 +483,8 @@ window.resetRestaurants = function resetRestaurants() {
   renderRestaurants();
 };
 
-/* === 칩 클릭 → research.html 이동 === */
-window.addEventListener('DOMContentLoaded', () => {
-  const goResearch = (keyword) => {
-    const url = new URL('research.html', location.href);
-    url.searchParams.set('keyword', keyword);
-    location.href = url.toString();
-  };
-  document
-    .querySelectorAll('.chips-row .chip:not(.chip--icon)')
-    .forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const keyword = btn.textContent.trim();
-        goResearch(keyword);
-      });
-    });
-});
-
 /* === Kakao Map === */
 (function () {
-  /* 0) 오류 메시지 */
   function showMapError(msg) {
     const box = document.getElementById('mapBox');
     if (!box) return;
@@ -377,7 +497,6 @@ window.addEventListener('DOMContentLoaded', () => {
     box.appendChild(div);
   }
 
-  /* 1) Kakao SDK 로더 */
   const KAKAO_JS_KEY =
     localStorage.getItem('kakao.appkey') || 'e771162067cb5bea30a5efc4c5a69160';
   const SDK = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(
@@ -410,47 +529,6 @@ window.addEventListener('DOMContentLoaded', () => {
     map.setBounds(b, 20, 20, 20, 20);
   }
 
-  /* 3) 학교 좌표 매핑 */
-  function resolveSchool(input) {
-    const catalog = [
-      {
-        ids: ['eulji', '을지대', '을지대학교 성남캠퍼스'],
-        name: '을지대',
-        lat: 37.4597,
-        lng: 127.1652,
-      },
-      {
-        ids: ['gachon', '가천대학교', '가천대학교 글로벌캠퍼스'],
-        name: '가천대학교',
-        lat: 37.45125,
-        lng: 127.129277,
-      },
-      {
-        ids: ['shingu', 'singu', '신구대학교', '신구대'],
-        name: '신구대학교',
-        lat: 37.446899,
-        lng: 127.167517,
-      },
-      {
-        ids: ['dongseoul', 'donseoul', '동서울대학교'],
-        name: '동서울대학교',
-        lat: 37.45944,
-        lng: 127.12944,
-      },
-    ];
-    const idKey = (input?.id || '')
-      .toString()
-      .toLowerCase()
-      .replace(/\s+/g, '');
-    const nameKey = (input?.name || '').toString().trim();
-    let item =
-      catalog.find((x) => x.ids.some((k) => k.toLowerCase() === idKey)) ||
-      catalog.find((x) => x.ids.includes(nameKey)) ||
-      catalog.find((x) => nameKey.includes(x.name)) ||
-      catalog[0];
-    return { ...item };
-  }
-
   /* 4) 데모 마켓/플레이스 (지도 오버레이용) */
   const MARKETS = [
     { id: 'sinhung', name: '신흥시장', lat: 37.4419, lng: 127.1295 },
@@ -471,6 +549,7 @@ window.addEventListener('DOMContentLoaded', () => {
         'https://picsum.photos/seed/food1b/640/400',
       ],
       reviews: 23,
+      tags: ['lunch'],
     },
     {
       id: 'p2',
@@ -484,6 +563,7 @@ window.addEventListener('DOMContentLoaded', () => {
         'https://picsum.photos/seed/food2b/640/400',
       ],
       reviews: 23,
+      tags: ['new'],
     },
 
     // 모란시장
@@ -499,6 +579,7 @@ window.addEventListener('DOMContentLoaded', () => {
         'https://picsum.photos/seed/food3b/640/400',
       ],
       reviews: 18,
+      tags: ['lunch'],
     },
     {
       id: 'p6',
@@ -512,6 +593,7 @@ window.addEventListener('DOMContentLoaded', () => {
         'https://picsum.photos/seed/food6b/640/400',
       ],
       reviews: 9,
+      tags: ['new'],
     },
 
     // 금광시장
@@ -527,6 +609,7 @@ window.addEventListener('DOMContentLoaded', () => {
         'https://picsum.photos/seed/food4b/640/400',
       ],
       reviews: 31,
+      tags: ['lunch'],
     },
     {
       id: 'p5',
@@ -540,6 +623,7 @@ window.addEventListener('DOMContentLoaded', () => {
         'https://picsum.photos/seed/food5b/640/400',
       ],
       reviews: 12,
+      tags: ['new'],
     },
     {
       id: 'p7',
@@ -553,8 +637,10 @@ window.addEventListener('DOMContentLoaded', () => {
         'https://picsum.photos/seed/food7b/640/400',
       ],
       reviews: 7,
+      tags: ['lunch'],
     },
   ];
+
   function buildPlaceHrefHome(p) {
     const u = new URL(MARKET_URL, location.href);
     u.searchParams.set('place', p.id);
@@ -563,7 +649,6 @@ window.addEventListener('DOMContentLoaded', () => {
       u.searchParams.set('lat', p.lat);
       u.searchParams.set('lng', p.lng);
     }
-    // px에 기본 정보 패킹(상세에서 가상 가게 복구용)
     u.searchParams.set(
       'px',
       pack({
@@ -577,18 +662,30 @@ window.addEventListener('DOMContentLoaded', () => {
     );
     return u.toString();
   }
-  /* 5) 부트스트랩 */
+
+  function buildMarketHref(m) {
+    const u = new URL(MARKET_URL, location.href);
+    u.searchParams.set('market', m.id);
+    if (typeof m.lat === 'number' && typeof m.lng === 'number') {
+      u.searchParams.set('lat', m.lat);
+      u.searchParams.set('lng', m.lng);
+    }
+    u.searchParams.set(
+      'px',
+      pack({ id: m.id, name: m.name, lat: m.lat, lng: m.lng })
+    );
+    return u.toString();
+  }
+
   document.addEventListener('DOMContentLoaded', async () => {
     const box = document.getElementById('mapBox');
     if (!box) return;
 
-    // 지도 DOM
     box.querySelector('.map-preview')?.remove();
     const mapDiv = document.createElement('div');
     mapDiv.className = 'map';
     box.appendChild(mapDiv);
 
-    // SDK 로딩
     try {
       await loadKakao();
     } catch (e) {
@@ -596,34 +693,27 @@ window.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 중심 = 저장된 학교
     const saved = getSavedSchool();
     const school = resolveSchool(saved);
     const center = { lat: school.lat, lng: school.lng };
 
-    // 지도 생성
-    const DESIRED_LEVEL = 3; // 2=더가깝게(~30-50m), 3=약 50-100m
+    const DESIRED_LEVEL = 3;
     const map = new kakao.maps.Map(mapDiv, {
-      center: LL(center.lat, center.lng),
+      center: new kakao.maps.LatLng(center.lat, center.lng),
       level: DESIRED_LEVEL,
     });
 
-    // 마커/라벨 유틸
     function addLabelOverlay({ lat, lng, href, name, kind = 'place' }) {
       const a = document.createElement('a');
       a.className = `map-label ${kind === 'market' ? 'market' : 'place'}`;
       a.href = href;
-
-      // ✅ 색상 분기: place=핑크, market=하늘(#59F1FF)
       const color = kind === 'market' ? '#59F1FF' : '#FF83A2';
-
       a.innerHTML = `
-    <svg class="pin" xmlns="http://www.w3.org/2000/svg" width="19" height="28" viewBox="0 0 19 28" aria-hidden="true" style="color:${color}">
-      <path d="M9.5 13.3C9.94556 13.3 10.3868 13.2095 10.7984 13.0336C11.21 12.8577 11.5841 12.5999 11.8991 12.2749C12.2142 11.9499 12.4641 11.564 12.6346 11.1394C12.8051 10.7148 12.8929 10.2596 12.8929 9.8C12.8929 8.87174 12.5354 7.9815 11.8991 7.32513C11.2628 6.66875 10.3998 6.3 9.5 6.3C8.60016 6.3 7.73717 6.66875 7.10089 7.32513C6.4646 7.9815 6.10714 8.87174 6.10714 9.8C6.10714 10.2596 6.1949 10.7148 6.36541 11.1394C6.53591 11.564 6.78583 11.9499 7.10089 12.2749C7.73717 12.9313 8.60016 13.3 9.5 13.3ZM9.5 0C14.7386 0 19 4.382 19 9.8C19 17.15 9.5 28 9.5 28C9.5 28 0 17.15 0 9.8C0 7.20088 1.00089 4.70821 2.78249 2.87035C4.56408 1.0325 6.98044 0 9.5 0Z" fill="currentColor"/>
-    </svg>
-    <span class="badge">${name}</span>
-  `;
-
+        <svg class="pin" xmlns="http://www.w3.org/2000/svg" width="19" height="28" viewBox="0 0 19 28" aria-hidden="true" style="color:${color}">
+          <path d="M9.5 13.3C9.94556 13.3 10.3868 13.2095 10.7984 13.0336C11.21 12.8577 11.5841 12.5999 11.8991 12.2749C12.2142 11.9499 12.4641 11.564 12.6346 11.1394C12.8051 10.7148 12.8929 10.2596 12.8929 9.8C12.8929 8.87174 12.5354 7.9815 11.8991 7.32513C11.2628 6.66875 10.3998 6.3 9.5 6.3C8.60016 6.3 7.73717 6.66875 7.10089 7.32513C6.4646 7.9815 6.10714 8.87174 6.10714 9.8C6.10714 10.2596 6.1949 10.7148 6.36541 11.1394C6.53591 11.564 6.78583 11.9499 7.10089 12.2749C7.73717 12.9313 8.60016 13.3 9.5 13.3ZM9.5 0C14.7386 0 19 4.382 19 9.8C19 17.15 9.5 28 9.5 28C9.5 28 0 17.15 0 9.8C0 7.20088 1.00089 4.70821 2.78249 2.87035C4.56408 1.0325 6.98044 0 9.5 0Z" fill="currentColor"/>
+        </svg>
+        <span class="badge">${name}</span>
+      `;
       const ov = new kakao.maps.CustomOverlay({
         position: new kakao.maps.LatLng(lat, lng),
         content: a,
@@ -636,25 +726,23 @@ window.addEventListener('DOMContentLoaded', () => {
       return ov;
     }
 
-    // 마켓 마커들
     const coords = [];
     MARKETS.forEach((m) => {
       addLabelOverlay({
         lat: m.lat,
         lng: m.lng,
-        href: buildMarketHref(m), // 상세로 이동
+        href: buildMarketHref(m),
         name: m.name,
-        kind: 'market', // ← 색 분기 트리거
+        kind: 'market',
       });
       coords.push({ lat: m.lat, lng: m.lng });
     });
 
-    // 플레이스 라벨들
     PLACES.forEach((p) => {
       addLabelOverlay({
         lat: p.lat,
         lng: p.lng,
-        href: buildPlaceHrefHome(p), // ← 이걸로 교체
+        href: buildPlaceHrefHome(p),
         name: p.name,
         kind: 'place',
       });
@@ -663,13 +751,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const FOCUS_ON_SCHOOL = true;
     if (FOCUS_ON_SCHOOL) {
-      map.setCenter(LL(center.lat, center.lng));
+      map.setCenter(new kakao.maps.LatLng(center.lat, center.lng));
       map.setLevel(DESIRED_LEVEL);
     } else {
       fitBounds(map, coords.length ? coords : [center]);
     }
 
-    // === 현재 위치 버튼 ===
+    // 현재 위치 버튼
     const locBtn = document.createElement('button');
     locBtn.type = 'button';
     locBtn.textContent = '현재위치';
@@ -700,17 +788,3 @@ window.addEventListener('DOMContentLoaded', () => {
     };
   });
 })();
-function buildMarketHref(m) {
-  const u = new URL(MARKET_URL, location.href);
-  u.searchParams.set('market', m.id);
-  if (typeof m.lat === 'number' && typeof m.lng === 'number') {
-    u.searchParams.set('lat', m.lat);
-    u.searchParams.set('lng', m.lng);
-  }
-  // 안전망: 상세에서 px로도 복구 가능
-  u.searchParams.set(
-    'px',
-    pack({ id: m.id, name: m.name, lat: m.lat, lng: m.lng })
-  );
-  return u.toString();
-}

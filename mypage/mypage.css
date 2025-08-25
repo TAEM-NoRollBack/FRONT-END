@@ -303,7 +303,7 @@ body {
   position: sticky;
   bottom: 0;
   z-index: 9;
-  background: #fff;
+  background: #f7f6f7;
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-around;
