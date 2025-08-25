@@ -167,7 +167,6 @@
 
 <!-- 더미데이터 API -->
 <script src="../lib/mock-api.js"></script>
-
 <script>
 (function(){
   // ---------- state ----------
@@ -211,6 +210,19 @@
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
     return (tmp.textContent || tmp.innerText || '').trim();
+  }
+
+  function getCurrentUser(){
+    try{
+      const prof = JSON.parse(localStorage.getItem('onboarding_profile')||'{}');
+      const me   = JSON.parse(localStorage.getItem('me')||'{}');
+      return {
+        id: String(me.id || me.userId || prof.userId || ''), // 숫자도 문자열로
+        name: (prof.nickname || me.name || '').trim(),       // 별명 우선
+      };
+    }catch(_){
+      return { id:'', name:'' };
+    }
   }
 
   // ---------- rating ----------
@@ -307,129 +319,139 @@
   el.btnDraft.addEventListener('click', saveDraft);
   restoreDraft();
 
-// ---------- place picker (modal built here) ----------
-const modal = createPlaceModal();
-document.body.appendChild(modal.root);
-el.btnPickLocation.addEventListener('click', ()=> modal.open());
+  // ---------- place picker (modal built here) ----------
+  const modal = createPlaceModal();
+  document.body.appendChild(modal.root);
+  el.btnPickLocation.addEventListener('click', ()=> modal.open());
 
-function setPlaceText(place){
-  if (!place){
-    el.placeText.textContent = '위치추가 (가게위치 등록 필수)';
-    el.placeText.style.color = 'rgba(0,0,0,.44)';
-  } else {
-    el.placeText.textContent = place.name;
-    el.placeText.style.color = '#000';
-  }
-}
-
-function createPlaceModal(){
-  const root = document.createElement('div');
-  root.className = 'modal';
-  root.innerHTML = `
-    <div class="sheet" role="dialog" aria-modal="true">
-      <header><strong>위치 선택</strong><button data-close>닫기</button></header>
-      <div class="list">
-        <div class="group-title">전통시장</div>
-        <div class="group" data-group="markets"></div>
-        <div class="group-title">상점</div>
-        <div class="group" data-group="places"></div>
-      </div>
-    </div>
-  `;
-
-  function render(){
-    const school  = window.MockAPI.resolveSchool(window.MockAPI.getSchoolSaved()) || {lat:37.42, lng:127.1265, radius:5_000};
-    const markets = window.MockAPI.listMarketsNear(school);
-    const places  = window.MockAPI.listPlaces();
-
-    const gM = root.querySelector('[data-group="markets"]');
-    const gP = root.querySelector('[data-group="places"]');
-    gM.innerHTML = markets.map(m=>`
-      <div class="item" data-type="market" data-id="${m.id}">
-        <div>${m.name} <small>· ${Math.round(m.distance_m)}m</small></div>
-        <small>${m.area||''}</small>
-      </div>`).join('') || `<div class="empty">근처 시장 없음</div>`;
-    gP.innerHTML = places.map(p=>`
-      <div class="item" data-type="place" data-id="${p.id}">
-        <div>${p.name} <small>· ${p.category||''}</small></div>
-        <small>⭐ ${p.rating}</small>
-      </div>`).join('') || `<div class="empty">등록된 상점 없음</div>`;
-  }
-
-  root.addEventListener('click', (e)=>{
-    if(e.target.matches('[data-close]')) close();
-    const it = e.target.closest('.item');
-    if(it){
-      const type = it.dataset.type;
-      const id   = it.dataset.id;
-      if (type === 'market'){
-        const school = window.MockAPI.resolveSchool(window.MockAPI.getSchoolSaved()) || {lat:37.42, lng:127.1265, radius:5_000};
-        const m = window.MockAPI.listMarketsNear(school).find(x=>x.id===id) || {id, name:'시장'};
-        state.place = { id: m.id, type:'market', name: m.name };
-      } else {
-        const p = window.MockAPI.listPlaces().find(x=>x.id===id) || {id, name:'가게'};
-        state.place = { id: p.id, type:'place', name: p.name };
-      }
-      setPlaceText(state.place);
-      close();
+  function setPlaceText(place){
+    if (!place){
+      el.placeText.textContent = '위치추가 (가게위치 등록 필수)';
+      el.placeText.style.color = 'rgba(0,0,0,.44)';
+    } else {
+      el.placeText.textContent = place.name;
+      el.placeText.style.color = '#000';
     }
+  }
+
+  function createPlaceModal(){
+    const root = document.createElement('div');
+    root.className = 'modal';
+    root.innerHTML = `
+      <div class="sheet" role="dialog" aria-modal="true">
+        <header><strong>위치 선택</strong><button data-close>닫기</button></header>
+        <div class="list">
+          <div class="group-title">전통시장</div>
+          <div class="group" data-group="markets"></div>
+          <div class="group-title">상점</div>
+          <div class="group" data-group="places"></div>
+        </div>
+      </div>
+    `;
+
+    function render(){
+      const school  = window.MockAPI.resolveSchool(window.MockAPI.getSchoolSaved()) || {lat:37.42, lng:127.1265, radius:5_000};
+      const markets = window.MockAPI.listMarketsNear(school);
+      const places  = window.MockAPI.listPlaces();
+
+      const gM = root.querySelector('[data-group="markets"]');
+      const gP = root.querySelector('[data-group="places"]');
+      gM.innerHTML = markets.map(m=>`
+        <div class="item" data-type="market" data-id="${m.id}">
+          <div>${m.name} <small>· ${Math.round(m.distance_m)}m</small></div>
+          <small>${m.area||''}</small>
+        </div>`).join('') || `<div class="empty">근처 시장 없음</div>`;
+      gP.innerHTML = places.map(p=>`
+        <div class="item" data-type="place" data-id="${p.id}">
+          <div>${p.name} <small>· ${p.category||''}</small></div>
+          <small>⭐ ${p.rating}</small>
+        </div>`).join('') || `<div class="empty">등록된 상점 없음</div>`;
+    }
+
+    root.addEventListener('click', (e)=>{
+      if(e.target.matches('[data-close]')) close();
+      const it = e.target.closest('.item');
+      if(it){
+        const type = it.dataset.type;
+        const id   = it.dataset.id;
+        if (type === 'market'){
+          const school = window.MockAPI.resolveSchool(window.MockAPI.getSchoolSaved()) || {lat:37.42, lng:127.1265, radius:5_000};
+          const m = window.MockAPI.listMarketsNear(school).find(x=>x.id===id) || {id, name:'시장'};
+          state.place = { id: m.id, type:'market', name: m.name };
+        } else {
+          const p = window.MockAPI.listPlaces().find(x=>x.id===id) || {id, name:'가게'};
+          state.place = { id: p.id, type:'place', name: p.name };
+        }
+        setPlaceText(state.place);
+        close();
+      }
+    });
+
+    function open(){ render(); root.style.display='flex'; }
+    function close(){ root.style.display='none'; }
+
+    return { root, open, close };
+  }
+
+  // ---------- submit & back ----------
+  el.btnSubmit.addEventListener('click', ()=>{
+    const title = el.title.value.trim();
+    const body  = el.editor.innerHTML;
+    const bodyText = stripHTML(body);
+
+    if (!title){ alert('제목을 입력하세요.'); el.title.focus(); return; }
+    if (!state.place){ alert('위를 선택하세요.'); el.btnPickLocation.focus(); return; }
+    if (!state.rating){ alert('별점을 선택하세요.'); return; }
+    if (!bodyText){ alert('본문을 입력하세요.'); el.editor.focus(); return; }
+
+    // 작성자 정보
+    const me = getCurrentUser();
+
+    // 저장 포스트 객체
+    const post = {
+      id: 'post_' + Date.now(),
+      author:  me.name || '나',      // 닉네임 저장
+      authorId: me.id || null,       // ID 저장
+      userId:  me.id || null,        // 호환용
+      createdAt: Date.now(),
+      title,
+      content: bodyText,
+      images: state.images.slice(),
+      likes: 0,
+      comments: 0,
+
+      // 추가 메타(에디터용)
+      place: state.place,
+      rating: state.rating,
+      align: state.align,
+      bodyHTML: body,
+      type: 'blog'                   // 블로그 글 구분
+    };
+
+    // 저장
+    const STORAGE_KEY = 'BOARD_POSTS';
+    const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    all.unshift(post);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+
+    // 위치별 인덱스 유지
+    const key = `posts.place.${state.place.id}`;
+    const idx = JSON.parse(localStorage.getItem(key) || '[]');
+    idx.unshift(post.id);
+    localStorage.setItem(key, JSON.stringify(idx));
+
+    // 초안 제거 & 이동
+    localStorage.removeItem(DRAFT_KEY);
+    location.href = 'board.html';
   });
 
-  function open(){ render(); root.style.display='flex'; }
-  function close(){ root.style.display='none'; }
-
-  return { root, open, close };
-}
-
-// ---------- submit & back ----------
-el.btnSubmit.addEventListener('click', ()=>{
-  const title = el.title.value.trim();
-  const body  = el.editor.innerHTML;
-  const bodyText = stripHTML(body);
-
-  if (!title){ alert('제목을 입력하세요.'); el.title.focus(); return; }
-  if (!state.place){ alert('위치를 선택하세요.'); el.btnPickLocation.focus(); return; }
-  if (!state.rating){ alert('별점을 선택하세요.'); return; }
-  if (!bodyText){ alert('본문을 입력하세요.'); el.editor.focus(); return; }
-
-  // 📌 board.html이 읽는 스키마/키로 저장
-  const post = {
-    id: 'post_' + Date.now(),
-    author: '나',               // 필요하면 닉네임으로 교체
-    createdAt: Date.now(),      // 숫자 타임스탬프
-    title,
-    content: bodyText,          // 텍스트 본문(보드가 사용하는 필드)
-    images: state.images.slice(),
-    likes: 0,
-    comments: 0,
-
-    // 추가 메타(우리 에디터용)
-    place: state.place,
-    rating: state.rating,
-    align: state.align,
-    bodyHTML: body
-  };
-
-  // 🔑 보드와 동일한 키로 저장
-  const STORAGE_KEY = 'BOARD_POSTS';
-  const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  all.unshift(post);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-
-  // 위치별 인덱스는 기존 로직 유지
-  const key = `posts.place.${state.place.id}`;
-  const idx = JSON.parse(localStorage.getItem(key) || '[]');
-  idx.unshift(post.id);
-  localStorage.setItem(key, JSON.stringify(idx));
-
-  // 초안 제거 & 이동
-  localStorage.removeItem(DRAFT_KEY);
-  location.href = 'board.html';
-});
-
-
   el.btnBack.addEventListener('click', ()=>{
-    const hasContent = el.title.value.trim() || stripHTML(el.editor.innerHTML) || state.images.length || state.rating || state.place;
+    const hasContent =
+      el.title.value.trim() ||
+      stripHTML(el.editor.innerHTML) ||
+      state.images.length ||
+      state.rating ||
+      state.place;
     if(!hasContent){
       location.href = 'board.html';
       return;
@@ -444,5 +466,6 @@ el.btnSubmit.addEventListener('click', ()=>{
   $('#btnEmpty6').addEventListener('click', ()=> toast('준비중 기능이에요!'));
 })();
 </script>
+
 </body>
 </html>

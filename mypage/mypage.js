@@ -128,14 +128,25 @@ window.addEventListener('pageshow', applySavedCount);
 window.addEventListener('storage', (e) => {
   if (e.key === SAVED_KEY) applySavedCount();
 });
+
 // === MyPage 카운터: 내가 쓴 리뷰 수 / 저장 수 ===
 (function () {
   const reviewEl = document.getElementById('countReview');
-  const blogEl = document.getElementById('countBlog'); // 선택: 블로그 리뷰 = 동일 집계로 표시하려면 사용
-  const savedEl = document.getElementById('countSaved'); // 선택: 저장된 맛집 수
+  const blogEl   = document.getElementById('countBlog');   // 블로그 리뷰 수
+  const savedEl  = document.getElementById('countSaved');  // 저장 수
 
+  // 저장 수는 기존 함수 재사용
+  function getSavedCount() {
+    try {
+      const arr = JSON.parse(localStorage.getItem('saved.items')) || [];
+      return Array.isArray(arr) ? arr.length : 0;
+    } catch { return 0; }
+  }
+
+  // 현재 사용자 정보 (onboarding_profile 포함)
   function getMe() {
     try {
+      const prof = JSON.parse(localStorage.getItem('onboarding_profile') || '{}');
       const raw =
         localStorage.getItem('me') ||
         localStorage.getItem('profile') ||
@@ -143,48 +154,33 @@ window.addEventListener('storage', (e) => {
       if (raw) {
         const o = JSON.parse(raw);
         return {
-          id: String(
-            o.id || o.userId || o.uid || o.memberId || o.loginId || ''
-          ),
-          name: (o.name || o.nickname || o.username || '').trim(),
+          id: String(o.id || o.userId || o.uid || o.memberId || o.loginId || prof.userId || ''),
+          name: (o.name || o.nickname || o.username || prof.nickname || '').trim(),
         };
       }
-    } catch {}
-    const name =
-      localStorage.getItem('myName') || localStorage.getItem('nickname') || '';
-    return { id: '', name: (name || '').trim() };
+      // 위의 저장이 없을 때 보조 소스
+      return {
+        id: String(prof.userId || ''),
+        name: (prof.nickname || localStorage.getItem('myName') || localStorage.getItem('nickname') || '').trim(),
+      };
+    } catch {
+      return { id:'', name:(localStorage.getItem('nickname')||'').trim() };
+    }
   }
+
   const norm = (s) => (s || '').toString().trim().toLowerCase();
 
-  function isMine(r, me) {
+  // reviews:* 에 저장된 "리뷰" 개수 (기존 로직)
+  function isMineReview(r, me) {
     if (!r) return false;
-    const ids = [
-      r.user?.id,
-      r.userId,
-      r.uid,
-      r.memberId,
-      r.authorId,
-      r.author?.id,
-      r.writerId,
-    ]
-      .filter(Boolean)
-      .map(String);
-    const names = [
-      r.user?.name,
-      r.author?.name,
-      r.nickname,
-      r.name,
-      r.writer,
-      r.authorName,
-    ]
-      .filter(Boolean)
-      .map(norm);
-
-    if (me.id && ids.some((id) => String(id) === String(me.id))) return true;
-    if (me.name && names.some((n) => n === norm(me.name))) return true;
+    const ids = [r.user?.id, r.userId, r.uid, r.memberId, r.authorId, r.author?.id, r.writerId]
+      .filter(Boolean).map(String);
+    const names = [r.user?.name, r.author?.name, r.nickname, r.name, r.writer, r.authorName]
+      .filter(Boolean).map(norm);
+    if (me.id && ids.some(id => String(id) === String(me.id))) return true;
+    if (me.name && names.some(n => n === norm(me.name))) return true;
     return false;
   }
-
   function countMyReviews() {
     const me = getMe();
     let n = 0;
@@ -193,16 +189,40 @@ window.addEventListener('storage', (e) => {
       if (!k || !k.startsWith('reviews:')) continue;
       try {
         const arr = JSON.parse(localStorage.getItem(k)) || [];
-        n += arr.filter((r) => isMine(r, me)).length;
+        n += arr.filter(r => isMineReview(r, me)).length;
       } catch {}
     }
     return n;
   }
 
-  function countSaved() {
+  // BOARD_POSTS(게시판 글) 중 내가 쓴 글 개수
+  function countMyBoardPosts() {
+    const me = getMe();
+    // 이름 매칭 보조 후보들(닉네임/별칭/‘나’ 포함)
+    let profNick = '';
+    try { profNick = (JSON.parse(localStorage.getItem('onboarding_profile')||'{}').nickname || '').trim(); } catch {}
+    const altName = (localStorage.getItem('nickname') || localStorage.getItem('myName') || '').trim();
+    const myNames = [me.name, profNick, altName, '나'].filter(Boolean).map(norm);
+
     try {
-      const list = JSON.parse(localStorage.getItem('saved.items')) || [];
-      return Array.isArray(list) ? list.length : 0; // place+market 모두 집계
+      const posts = JSON.parse(localStorage.getItem('BOARD_POSTS')) || [];
+      return posts.filter(p => {
+        // 1) ID 매칭(가장 정확)
+        if (me.id && (
+          String(p.authorId || '') === String(me.id) ||
+          String(p.userId   || '') === String(me.id)
+        )) return true;
+
+        // 2) 이름/닉네임 매칭(보조)
+        const names = [p.author, p.authorName, p.nickname, p.user?.name]
+          .filter(Boolean).map(norm);
+        if (names.some(n => myNames.includes(n))) return true;
+
+        // 3) (옵션) type이 blog인 것만 세고 싶으면 아래 주석 해제
+        // if (p.type !== 'blog') return false;
+
+        return false;
+      }).length;
     } catch {
       return 0;
     }
@@ -210,6 +230,6 @@ window.addEventListener('storage', (e) => {
 
   const myReviews = countMyReviews();
   if (reviewEl) reviewEl.textContent = String(myReviews);
-  if (blogEl) blogEl.textContent = String(myReviews); // 필요 없으면 이 줄 제거
-  if (savedEl) savedEl.textContent = String(countSaved());
+  if (blogEl)   blogEl.textContent   = String(countMyBoardPosts());
+  if (savedEl)  savedEl.textContent  = String(getSavedCount());
 })();
