@@ -1,7 +1,22 @@
 // ===== Config =====
 const USE_MOCK = true; // 백엔드 붙이면 false로
 const ENDPOINT = '/api/points'; // 예시: GET { balance, history[] }
+// ✅ 추가
+const POINTS_KEY = 'points.state.v1';
 
+// ✅ 추가: 로컬 포인트 상태 로드/저장 + 초기화(없으면 MOCK으로 시드)
+function loadPointsState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(POINTS_KEY));
+    if (s && typeof s === 'object') return s;
+  } catch {}
+  const seeded = structuredClone(MOCK);        // 처음엔 더미로 시드
+  localStorage.setItem(POINTS_KEY, JSON.stringify(seeded));
+  return seeded;
+}
+function savePointsState(state) {
+  localStorage.setItem(POINTS_KEY, JSON.stringify(state));
+}
 // ===== Utils =====
 const $ = (sel, el = document) => el.querySelector(sel);
 const fmtDate = (iso) => {
@@ -14,65 +29,13 @@ const fmtDate = (iso) => {
 const fmtExpire = (iso) => `${iso.replace(/-/g, '.')} 까지 사용 가능`;
 const numberWithComma = (n) => n.toLocaleString('ko-KR');
 
-// ===== Mock Data =====
-const MOCK = {
-  balance: 3000,
-  history: [
-    {
-      id: 1,
-      date: '2025-07-17',
-      title: '신흥시장 블로그 리뷰 작성',
-      expire: '2025-12-31',
-      amount: +200,
-    },
-    {
-      id: 2,
-      date: '2025-07-17',
-      title: '신흥시장 블로그 리뷰 작성',
-      expire: '2025-12-31',
-      amount: +200,
-    },
-    {
-      id: 3,
-      date: '2025-07-17',
-      title: '신흥시장 블로그 리뷰 작성',
-      expire: '2025-12-31',
-      amount: +200,
-    },
-    {
-      id: 4,
-      date: '2025-07-17',
-      title: '신흥시장 블로그 리뷰 작성',
-      expire: '2025-12-31',
-      amount: +200,
-    },
-    {
-      id: 5,
-      date: '2025-07-17',
-      title: '신흥시장 블로그 리뷰 작성',
-      expire: '2025-12-31',
-      amount: +200,
-    },
-    {
-      id: 6,
-      date: '2025-07-17',
-      title: '신흥시장 블로그 리뷰 작성',
-      expire: '2025-12-31',
-      amount: +200,
-    },
-    {
-      id: 7,
-      date: '2025-07-17',
-      title: '신흥시장 블로그 리뷰 작성',
-      expire: '2025-12-31',
-      amount: +200,
-    },
-  ],
-};
-
 // ===== API =====
 async function getPoints() {
-  if (USE_MOCK) return structuredClone(MOCK);
+  if (USE_MOCK) {
+    // ✅ 로컬 스토리지에서 읽음(최초 1회는 MOCK으로 시드)
+    return loadPointsState();
+  }
+  // 백엔드 붙이면 여기 사용
   const res = await fetch(ENDPOINT, { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to load');
   return res.json();

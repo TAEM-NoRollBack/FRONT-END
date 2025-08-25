@@ -198,6 +198,38 @@
     btnBack: $('#btnBack'),
     toast: $('#toast')
   };
+// ✅ Points helpers (localStorage DB)
+const PT_KEY = 'points.state.v1';
+function ptLoad() {
+  try {
+    const s = JSON.parse(localStorage.getItem(PT_KEY));
+    if (s && typeof s === 'object') return s;
+  } catch {}
+  // 포인트 페이지와 동일하게, 없으면 빈값으로 시작(원하면 MOCK으로 시드해도 됨)
+  return { balance: 0, history: [] };
+}
+function ptSave(state) {
+  localStorage.setItem(PT_KEY, JSON.stringify(state));
+}
+function earnBlogReviewPoint(placeName, amount = 200) {
+  const st = ptLoad();
+  const now  = new Date();
+  const yyyy = now.getFullYear();
+  const mm   = String(now.getMonth() + 1).padStart(2, '0');
+  const dd   = String(now.getDate()).padStart(2, '0');
+
+  const tx = {
+    id: 'tx_' + Date.now(),
+    date: `${yyyy}-${mm}-${dd}`,                 // ISO(YYYY-MM-DD)
+    title: `${placeName} 블로그 리뷰 작성`,      // ✅ 요청한 멘트
+    expire: `${yyyy}-12-31`,                     // 연말 만료(원하면 규칙 바꿔도 됨)
+    amount: +amount,                             // +200P
+  };
+
+  st.balance = (Number(st.balance) || 0) + amount;
+  st.history.unshift(tx);
+  ptSave(st);
+}
 
   // ---------- helpers ----------
   function toast(msg){
@@ -440,9 +472,15 @@
     idx.unshift(post.id);
     localStorage.setItem(key, JSON.stringify(idx));
 
-    // 초안 제거 & 이동
-    localStorage.removeItem(DRAFT_KEY);
-    location.href = 'board.html';
+// ✅ 블로그 리뷰 200P 적립 (장소명으로 타이틀 생성)
+try {
+  earnBlogReviewPoint(state.place?.name || '내가 쓴 리뷰');
+} catch (_) { /* 실패해도 글 저장은 진행 */ }
+
+// 초안 제거 & 이동
+localStorage.removeItem(DRAFT_KEY);
+location.href = 'board.html';
+
   });
 
   el.btnBack.addEventListener('click', ()=>{
