@@ -1,375 +1,690 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>블로그 글쓰기 | write.html</title>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" />
-<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" rel="stylesheet" />
-<style>
-  :root{
-    --pink:#FF83A2;
-    --pink-soft:#FFCDDA;
-    --line:#D9D9D9;
-    --text:#000;
-    --muted:#777;
-    --bg:#fff;
-  }
-  html,body{margin:0;height:100%;background:#fff;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
-  .phone{max-width:393px;height:100svh;margin:0 auto;position:relative;background:#fff;box-shadow:0 0 0 1px #eee;display:flex;flex-direction:column;}
-  /* top bar */
-  .topbar{position:relative;height:64px;background:var(--pink);border-bottom-left-radius:10px;border-bottom-right-radius:10px;display:flex;align-items:flex-end;padding:8px 12px 10px;}
-  .topbar .back{all:unset;cursor:pointer;color:#fff;padding:6px 8px;border-radius:8px}
-  .topbar .title{flex:1;text-align:center;color:#000;font-size:18px}
-  .topbar .submit{all:unset;cursor:pointer;color:#000;background:#fff;padding:6px 10px;border-radius:14px;border:1px solid var(--pink);font-size:13px}
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>블로그 글쓰기 | write.html</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --pink: #ff83a2;
+        --pink-soft: #ffcdda;
+        --line: #d9d9d9;
+        --text: #000;
+        --muted: #777;
+        --bg: #fff;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #fff;
+        font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+          Roboto, Arial, sans-serif;
+      }
+      .phone {
+        max-width: 393px;
+        height: 100svh;
+        margin: 0 auto;
+        position: relative;
+        background: #fff;
+        box-shadow: 0 0 0 1px #eee;
+        display: flex;
+        flex-direction: column;
+      }
+      /* top bar */
+      .topbar {
+        position: relative;
+        height: 64px;
+        background: var(--pink);
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+        display: flex;
+        align-items: flex-end;
+        padding: 8px 12px 10px;
+      }
+      .topbar .back {
+        all: unset;
+        cursor: pointer;
+        color: #fff;
+        padding: 6px 8px;
+        border-radius: 8px;
+      }
+      .topbar .title {
+        flex: 1;
+        text-align: center;
+        color: #000;
+        font-size: 18px;
+      }
+      .topbar .submit {
+        all: unset;
+        cursor: pointer;
+        color: #000;
+        background: #fff;
+        padding: 6px 10px;
+        border-radius: 14px;
+        border: 1px solid var(--pink);
+        font-size: 13px;
+      }
 
-  /* form */
-  .page{flex:1;overflow:auto;padding:14px 16px 88px;}
-  .row{margin:10px 0}
-  .label{font-size:14px;color:#333;margin-bottom:6px}
-  .input, .fake-input{width:100%;border:none;border-bottom:1px solid #000;padding:10px 0;font-size:16px;outline:none}
-  .input::placeholder{color:rgba(0,0,0,.44)}
-  .help{margin-top:4px;color:rgba(0,0,0,.44);font-size:13px}
-  .loc{display:flex;align-items:center;gap:8px;color:rgba(0,0,0,.44);cursor:pointer}
-  .loc .pin{width:16px;height:16px;background:var(--pink);-webkit-mask:url('map.svg') center/contain no-repeat;mask:url('map.svg') center/contain no-repeat;opacity:.85} /* 그냥 표시용 */
-  .loc .text{border-bottom:1px solid #000;padding:8px 0;flex:1}
+      /* form */
+      .page {
+        flex: 1;
+        overflow: auto;
+        padding: 14px 16px 88px;
+      }
+      .row {
+        margin: 10px 0;
+      }
+      .label {
+        font-size: 14px;
+        color: #333;
+        margin-bottom: 6px;
+      }
+      .input,
+      .fake-input {
+        width: 100%;
+        border: none;
+        border-bottom: 1px solid #000;
+        padding: 10px 0;
+        font-size: 16px;
+        outline: none;
+      }
+      .input::placeholder {
+        color: rgba(0, 0, 0, 0.44);
+      }
+      .help {
+        margin-top: 4px;
+        color: rgba(0, 0, 0, 0.44);
+        font-size: 13px;
+      }
+      .loc {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(0, 0, 0, 0.44);
+        cursor: pointer;
+      }
+      .loc .pin {
+        width: 16px;
+        height: 16px;
+        background: var(--pink);
+        -webkit-mask: url('map.svg') center/contain no-repeat;
+        mask: url('map.svg') center/contain no-repeat;
+        opacity: 0.85;
+      } /* 그냥 표시용 */
+      .loc .text {
+        border-bottom: 1px solid #000;
+        padding: 8px 0;
+        flex: 1;
+      }
 
-  /* rating */
-  .rating{display:flex;align-items:center;gap:10px;margin-top:8px}
-  .stars{display:flex;gap:6px}
-  .star-btn{
-    all:unset;cursor:pointer;width:20px;height:20px;display:inline-block;
-    background:var(--pink);
-    opacity:.25;
-    -webkit-mask:url('star.svg') center / contain no-repeat;
-            mask:url('star.svg') center / contain no-repeat;
-  }
-  .star-btn.active{opacity:1}
-  .rating .hint{color:rgba(0,0,0,.44);font-size:14px}
-  .rating .num{color:#000;font-size:14px;min-width:32px}
+      /* rating */
+      .rating {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .stars {
+        display: flex;
+        gap: 6px;
+      }
+      .star-btn {
+        all: unset;
+        cursor: pointer;
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        background: var(--pink);
+        opacity: 0.25;
+        -webkit-mask: url('star.svg') center / contain no-repeat;
+        mask: url('star.svg') center / contain no-repeat;
+      }
+      .star-btn.active {
+        opacity: 1;
+      }
+      .rating .hint {
+        color: rgba(0, 0, 0, 0.44);
+        font-size: 14px;
+      }
+      .rating .num {
+        color: #000;
+        font-size: 14px;
+        min-width: 32px;
+      }
 
-  /* gallery */
-  .gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
-  .thumb{width:100%;aspect-ratio:1.2/1;overflow:hidden;border-radius:10px;border:1px solid #eee;background:#f7f7f7}
-  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+      /* gallery */
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .thumb {
+        width: 100%;
+        aspect-ratio: 1.2/1;
+        overflow: hidden;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        background: #f7f7f7;
+      }
+      .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
 
-  /* editor */
-  #editor{
-    min-height:220px;border-top:1px solid var(--line);padding:12px 2px 8px;font-size:15px;line-height:1.6;outline:none;
-    word-break:break-word;
-  }
-  #editor.align-left{ text-align:left }
-  #editor.align-center{ text-align:center }
-  #editor.align-right{ text-align:right }
-  #editor:empty:before{content:attr(data-placeholder);color:rgba(0,0,0,.44)}
+      /* editor */
+      #editor {
+        min-height: 220px;
+        border-top: 1px solid var(--line);
+        padding: 12px 2px 8px;
+        font-size: 15px;
+        line-height: 1.6;
+        outline: none;
+        word-break: break-word;
+      }
+      #editor.align-left {
+        text-align: left;
+      }
+      #editor.align-center {
+        text-align: center;
+      }
+      #editor.align-right {
+        text-align: right;
+      }
+      #editor:empty:before {
+        content: attr(data-placeholder);
+        color: rgba(0, 0, 0, 0.44);
+      }
 
-  /* bottom toolbar */
-  .toolbar{
-    position:fixed;left:50%;transform:translateX(-50%);
-    bottom:12px;background:#fff;border:1px solid var(--pink);
-    display:flex;align-items:center;gap:8px;padding:8px 8px 8px 8px;box-shadow:0 6px 24px rgba(0,0,0,.06);
-  }
-  .tool{width:36px;height:36px;border:1px solid var(--pink);border-radius:8px;display:grid;place-items:center;cursor:pointer;background:#fff}
-  .tool img{width:22px;height:22px;display:block}
-  .spacer{flex:1}
-  .btn-draft{all:unset;cursor:pointer;font-size:13px;background:#fff;border:1px solid var(--pink);padding:6px 10px;border-radius:8px}
-  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:68px;background:#222;color:#fff;padding:8px 12px;border-radius:10px;font-size:13px;opacity:0;transition:.25s}
-  .toast.show{opacity:1}
+      /* bottom toolbar */
+      .toolbar {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 12px;
+        background: #fff;
+        border: 1px solid var(--pink);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 8px 8px 8px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+      }
+      .tool {
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--pink);
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        background: #fff;
+      }
+      .tool img {
+        width: 22px;
+        height: 22px;
+        display: block;
+      }
+      .spacer {
+        flex: 1;
+      }
+      .btn-draft {
+        all: unset;
+        cursor: pointer;
+        font-size: 13px;
+        background: #fff;
+        border: 1px solid var(--pink);
+        padding: 6px 10px;
+        border-radius: 8px;
+      }
+      .toast {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 68px;
+        background: #222;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 13px;
+        opacity: 0;
+        transition: 0.25s;
+      }
+      .toast.show {
+        opacity: 1;
+      }
 
-  /* modal */
-  .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:18px}
-  .modal .sheet{width:min(360px,100%);max-height:70vh;overflow:auto;background:#fff;border-radius:14px;border:1px solid #eee}
-  .sheet header{position:sticky;top:0;background:#fff;padding:12px 14px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
-  .sheet header strong{font-size:15px}
-  .sheet header button{all:unset;cursor:pointer;color:var(--pink);font-weight:600}
-  .list{padding:4px 8px 10px}
-  .group-title{margin:12px 6px 6px;font-size:13px;color:#999}
-  .item{padding:10px;border:1px solid #eee;border-radius:10px;margin:6px 4px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-  .item small{color:#777}
-  .empty{padding:30px;text-align:center;color:#999}
-</style>
-</head>
-<body>
-<div class="phone">
-  <div class="topbar">
-    <button id="btnBack" class="back">〈</button>
-    <div class="title">게시판 · 전체공개</div>
-    <button id="btnSubmit" class="submit">등록</button>
-  </div>
+      /* modal */
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+      }
+      .modal .sheet {
+        width: min(360px, 100%);
+        max-height: 70vh;
+        overflow: auto;
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #eee;
+      }
+      .sheet header {
+        position: sticky;
+        top: 0;
+        background: #fff;
+        padding: 12px 14px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .sheet header strong {
+        font-size: 15px;
+      }
+      .sheet header button {
+        all: unset;
+        cursor: pointer;
+        color: var(--pink);
+        font-weight: 600;
+      }
+      .list {
+        padding: 4px 8px 10px;
+      }
+      .group-title {
+        margin: 12px 6px 6px;
+        font-size: 13px;
+        color: #999;
+      }
+      .item {
+        padding: 10px;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        margin: 6px 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+      }
+      .item small {
+        color: #777;
+      }
+      .empty {
+        padding: 30px;
+        text-align: center;
+        color: #999;
+      }
+      /* ===== 등록 완료 모달 ===== */
+      .reward-dim {
+        position: fixed;
+        inset: 0;
+        display: none; /* open 시 flex */
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 9999;
+      }
+      .reward-dim.open {
+        display: flex;
+      }
 
-  <div class="page">
-    <!-- 제목 -->
-    <div class="row">
-      <input id="title" class="input" placeholder="제목 (가게이름 입력 필수)" maxlength="80" />
-    </div>
+      .reward-card {
+        width: 244px;
+        height: 166px;
+        flex-shrink: 0;
+        border-radius: 10px;
+        background: #ffcdda; /* 연핑크(지정값) */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center; /* 박스 정중앙 배치 */
+        gap: 6px;
+        padding: 0; /* 정확한 규격 유지 */
+        text-align: center;
+      }
+      .reward-card .title {
+        margin: 0;
+        font-weight: 800;
+        font-size: 16px;
+        color: #000;
+      }
 
-    <!-- 위치 -->
-    <div class="row">
-      <div id="btnPickLocation" class="loc" role="button" tabindex="0" aria-label="위치 선택">
-        <span class="pin" aria-hidden="true"></span>
-        <div id="placeText" class="text">위치추가 (가게위치 등록 필수)</div>
+      .reward-card .msg {
+        margin: 0 0 2px;
+        font-size: 14px;
+        color: #000;
+      }
+
+      /* 링크 텍스트 스펙 */
+      .reward-card .link {
+        color: #ff83a2;
+        font-family: Pretendard;
+        font-size: 10px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 38.644px; /* 386.437% */
+        text-decoration: underline; /* 밑줄 */
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone">
+      <div class="topbar">
+        <button id="btnBack" class="back">〈</button>
+        <div class="title">게시판 · 전체공개</div>
+        <button id="btnSubmit" class="submit">등록</button>
       </div>
-      <div class="help">최근 다녀온 가게·시장을 사진과 함께 기록해보세요.</div>
-    </div>
 
-    <!-- 별점 -->
-    <div class="row">
-      <div class="rating">
-        <div id="stars" class="stars" aria-label="별점 매기기">
-          <button class="star-btn" data-val="1" aria-label="1점"></button>
-          <button class="star-btn" data-val="2" aria-label="2점"></button>
-          <button class="star-btn" data-val="3" aria-label="3점"></button>
-          <button class="star-btn" data-val="4" aria-label="4점"></button>
-          <button class="star-btn" data-val="5" aria-label="5점"></button>
+      <div class="page">
+        <!-- 제목 -->
+        <div class="row">
+          <input
+            id="title"
+            class="input"
+            placeholder="제목 (가게이름 입력 필수)"
+            maxlength="80"
+          />
         </div>
-        <div class="hint">별점을 선택해주세요.</div>
-        <div id="ratingNum" class="num"></div>
+
+        <!-- 위치 -->
+        <div class="row">
+          <div
+            id="btnPickLocation"
+            class="loc"
+            role="button"
+            tabindex="0"
+            aria-label="위치 선택"
+          >
+            <span class="pin" aria-hidden="true"></span>
+            <div id="placeText" class="text">위치추가 (가게위치 등록 필수)</div>
+          </div>
+          <div class="help">
+            최근 다녀온 가게·시장을 사진과 함께 기록해보세요.
+          </div>
+        </div>
+
+        <!-- 별점 -->
+        <div class="row">
+          <div class="rating">
+            <div id="stars" class="stars" aria-label="별점 매기기">
+              <button class="star-btn" data-val="1" aria-label="1점"></button>
+              <button class="star-btn" data-val="2" aria-label="2점"></button>
+              <button class="star-btn" data-val="3" aria-label="3점"></button>
+              <button class="star-btn" data-val="4" aria-label="4점"></button>
+              <button class="star-btn" data-val="5" aria-label="5점"></button>
+            </div>
+            <div class="hint">별점을 선택해주세요.</div>
+            <div id="ratingNum" class="num"></div>
+          </div>
+        </div>
+
+        <!-- 썸네일 갤러리 -->
+        <div id="gallery" class="gallery" aria-live="polite"></div>
+
+        <!-- 본문 -->
+        <div
+          id="editor"
+          class="align-left"
+          contenteditable="true"
+          data-placeholder="본문을 입력하세요. 사진을 올리면 위에 썸네일로 미리보기가 보여요."
+        ></div>
       </div>
+
+      <!-- 하단 툴바 -->
+      <div class="toolbar" role="toolbar" aria-label="글쓰기 도구">
+        <button id="btnPickImage" class="tool" title="사진 업로드">
+          <img src="picture.svg" alt="사진" />
+        </button>
+        <button id="btnEmpty2" class="tool" title="(준비중)">
+          <img src="text.svg" alt="준비중" />
+        </button>
+        <button id="btnAlignLeft" class="tool" title="왼쪽 정렬">
+          <img src="left.svg" alt="왼쪽정렬" />
+        </button>
+        <button id="btnAlignCenter" class="tool" title="가운데 정렬">
+          <img src="middle.svg" alt="가운데정렬" />
+        </button>
+        <button id="btnAlignRight" class="tool" title="오른쪽 정렬">
+          <img src="right.svg" alt="오른쪽정렬" />
+        </button>
+        <button id="btnEmpty6" class="tool" title="(준비중)">
+          <img src="star.svg" alt="준비중" />
+        </button>
+        <div class="spacer"></div>
+        <button id="btnDraft" class="btn-draft">임시저장</button>
+      </div>
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
     </div>
 
-    <!-- 썸네일 갤러리 -->
-    <div id="gallery" class="gallery" aria-live="polite"></div>
+    <!-- 숨김 파일 입력 -->
+    <input id="fileInput" type="file" accept="image/*" multiple hidden />
 
-    <!-- 본문 -->
-    <div id="editor" class="align-left"
-         contenteditable="true"
-         data-placeholder="본문을 입력하세요. 사진을 올리면 위에 썸네일로 미리보기가 보여요."></div>
-  </div>
+    <!-- 더미데이터 API -->
+    <script src="../lib/mock-api.js"></script>
+    <script>
+      (function () {
+        // ---------- state ----------
+        const state = {
+          place: null, // { id, type:'market'|'place', name }
+          rating: 0,
+          images: [], // dataURL[]
+          align: 'left',
+        };
 
-  <!-- 하단 툴바 -->
-  <div class="toolbar" role="toolbar" aria-label="글쓰기 도구">
-    <button id="btnPickImage" class="tool" title="사진 업로드">
-      <img src="picture.svg" alt="사진" />
-    </button>
-    <button id="btnEmpty2" class="tool" title="(준비중)">
-      <img src="text.svg" alt="준비중" />
-    </button>
-    <button id="btnAlignLeft" class="tool" title="왼쪽 정렬">
-      <img src="left.svg" alt="왼쪽정렬" />
-    </button>
-    <button id="btnAlignCenter" class="tool" title="가운데 정렬">
-      <img src="middle.svg" alt="가운데정렬" />
-    </button>
-    <button id="btnAlignRight" class="tool" title="오른쪽 정렬">
-      <img src="right.svg" alt="오른쪽정렬" />
-    </button>
-    <button id="btnEmpty6" class="tool" title="(준비중)">
-      <img src="star.svg" alt="준비중" />
-    </button>
-    <div class="spacer"></div>
-    <button id="btnDraft" class="btn-draft">임시저장</button>
-  </div>
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-</div>
+        const $ = (sel, el = document) => el.querySelector(sel);
+        const $$ = (sel, el = document) => Array.from(el.querySelectorAll(sel));
 
-<!-- 숨김 파일 입력 -->
-<input id="fileInput" type="file" accept="image/*" multiple hidden />
+        const el = {
+          title: $('#title'),
+          placeText: $('#placeText'),
+          btnPickLocation: $('#btnPickLocation'),
+          starsWrap: $('#stars'),
+          ratingNum: $('#ratingNum'),
+          editor: $('#editor'),
+          gallery: $('#gallery'),
+          fileInput: $('#fileInput'),
+          btnPickImage: $('#btnPickImage'),
+          btnAlignLeft: $('#btnAlignLeft'),
+          btnAlignCenter: $('#btnAlignCenter'),
+          btnAlignRight: $('#btnAlignRight'),
+          btnDraft: $('#btnDraft'),
+          btnSubmit: $('#btnSubmit'),
+          btnBack: $('#btnBack'),
+          toast: $('#toast'),
+        };
+        // ✅ Points helpers (localStorage DB)
+        const PT_KEY = 'points.state.v1';
+        function ptLoad() {
+          try {
+            const s = JSON.parse(localStorage.getItem(PT_KEY));
+            if (s && typeof s === 'object') return s;
+          } catch {}
+          // 포인트 페이지와 동일하게, 없으면 빈값으로 시작(원하면 MOCK으로 시드해도 됨)
+          return { balance: 0, history: [] };
+        }
+        function ptSave(state) {
+          localStorage.setItem(PT_KEY, JSON.stringify(state));
+        }
+        function earnBlogReviewPoint(placeName, amount = 200) {
+          const st = ptLoad();
+          const now = new Date();
+          const yyyy = now.getFullYear();
+          const mm = String(now.getMonth() + 1).padStart(2, '0');
+          const dd = String(now.getDate()).padStart(2, '0');
 
-<!-- 더미데이터 API -->
-<script src="../lib/mock-api.js"></script>
-<script>
-(function(){
-  // ---------- state ----------
-  const state = {
-    place: null,               // { id, type:'market'|'place', name }
-    rating: 0,
-    images: [],                // dataURL[]
-    align: 'left'
-  };
+          const tx = {
+            id: 'tx_' + Date.now(),
+            date: `${yyyy}-${mm}-${dd}`, // ISO(YYYY-MM-DD)
+            title: `${placeName} 블로그 리뷰 작성`, // ✅ 요청한 멘트
+            expire: `${yyyy}-12-31`, // 연말 만료(원하면 규칙 바꿔도 됨)
+            amount: +amount, // +200P
+          };
 
-  const $ = (sel, el=document)=> el.querySelector(sel);
-  const $$ = (sel, el=document)=> Array.from(el.querySelectorAll(sel));
+          st.balance = (Number(st.balance) || 0) + amount;
+          st.history.unshift(tx);
+          ptSave(st);
+        }
 
-  const el = {
-    title: $('#title'),
-    placeText: $('#placeText'),
-    btnPickLocation: $('#btnPickLocation'),
-    starsWrap: $('#stars'),
-    ratingNum: $('#ratingNum'),
-    editor: $('#editor'),
-    gallery: $('#gallery'),
-    fileInput: $('#fileInput'),
-    btnPickImage: $('#btnPickImage'),
-    btnAlignLeft: $('#btnAlignLeft'),
-    btnAlignCenter: $('#btnAlignCenter'),
-    btnAlignRight: $('#btnAlignRight'),
-    btnDraft: $('#btnDraft'),
-    btnSubmit: $('#btnSubmit'),
-    btnBack: $('#btnBack'),
-    toast: $('#toast')
-  };
-// ✅ Points helpers (localStorage DB)
-const PT_KEY = 'points.state.v1';
-function ptLoad() {
-  try {
-    const s = JSON.parse(localStorage.getItem(PT_KEY));
-    if (s && typeof s === 'object') return s;
-  } catch {}
-  // 포인트 페이지와 동일하게, 없으면 빈값으로 시작(원하면 MOCK으로 시드해도 됨)
-  return { balance: 0, history: [] };
-}
-function ptSave(state) {
-  localStorage.setItem(PT_KEY, JSON.stringify(state));
-}
-function earnBlogReviewPoint(placeName, amount = 200) {
-  const st = ptLoad();
-  const now  = new Date();
-  const yyyy = now.getFullYear();
-  const mm   = String(now.getMonth() + 1).padStart(2, '0');
-  const dd   = String(now.getDate()).padStart(2, '0');
+        // ---------- helpers ----------
+        function toast(msg) {
+          el.toast.textContent = msg;
+          el.toast.classList.add('show');
+          setTimeout(() => el.toast.classList.remove('show'), 1400);
+        }
 
-  const tx = {
-    id: 'tx_' + Date.now(),
-    date: `${yyyy}-${mm}-${dd}`,                 // ISO(YYYY-MM-DD)
-    title: `${placeName} 블로그 리뷰 작성`,      // ✅ 요청한 멘트
-    expire: `${yyyy}-12-31`,                     // 연말 만료(원하면 규칙 바꿔도 됨)
-    amount: +amount,                             // +200P
-  };
+        function stripHTML(html) {
+          const tmp = document.createElement('div');
+          tmp.innerHTML = html;
+          return (tmp.textContent || tmp.innerText || '').trim();
+        }
 
-  st.balance = (Number(st.balance) || 0) + amount;
-  st.history.unshift(tx);
-  ptSave(st);
-}
+        function getCurrentUser() {
+          try {
+            const prof = JSON.parse(
+              localStorage.getItem('onboarding_profile') || '{}'
+            );
+            const me = JSON.parse(localStorage.getItem('me') || '{}');
+            return {
+              id: String(me.id || me.userId || prof.userId || ''), // 숫자도 문자열로
+              name: (prof.nickname || me.name || '').trim(), // 별명 우선
+            };
+          } catch (_) {
+            return { id: '', name: '' };
+          }
+        }
 
-  // ---------- helpers ----------
-  function toast(msg){
-    el.toast.textContent = msg;
-    el.toast.classList.add('show');
-    setTimeout(()=> el.toast.classList.remove('show'), 1400);
-  }
+        // ---------- rating ----------
+        function renderStars() {
+          $$('.star-btn', el.starsWrap).forEach((btn) => {
+            const val = Number(btn.dataset.val);
+            btn.classList.toggle('active', val <= state.rating);
+          });
+          el.ratingNum.textContent = state.rating
+            ? state.rating.toFixed(1)
+            : '';
+        }
+        el.starsWrap.addEventListener('click', (e) => {
+          const btn = e.target.closest('.star-btn');
+          if (!btn) return;
+          state.rating = Number(btn.dataset.val);
+          renderStars();
+        });
+        renderStars();
 
-  function stripHTML(html){
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    return (tmp.textContent || tmp.innerText || '').trim();
-  }
+        // ---------- images ----------
+        el.btnPickImage.addEventListener('click', () => el.fileInput.click());
+        el.fileInput.addEventListener('change', async (e) => {
+          const files = Array.from(e.target.files || []);
+          for (const f of files) {
+            if (!f.type.startsWith('image/')) continue;
+            const dataURL = await fileToDataURL(f);
+            state.images.push(dataURL);
+          }
+          renderGallery();
+          e.target.value = ''; // reset for re-select
+        });
 
-  function getCurrentUser(){
-    try{
-      const prof = JSON.parse(localStorage.getItem('onboarding_profile')||'{}');
-      const me   = JSON.parse(localStorage.getItem('me')||'{}');
-      return {
-        id: String(me.id || me.userId || prof.userId || ''), // 숫자도 문자열로
-        name: (prof.nickname || me.name || '').trim(),       // 별명 우선
-      };
-    }catch(_){
-      return { id:'', name:'' };
-    }
-  }
+        function fileToDataURL(file) {
+          return new Promise((res, rej) => {
+            const fr = new FileReader();
+            fr.onload = () => res(fr.result);
+            fr.onerror = rej;
+            fr.readAsDataURL(file);
+          });
+        }
 
-  // ---------- rating ----------
-  function renderStars(){
-    $$('.star-btn', el.starsWrap).forEach(btn=>{
-      const val = Number(btn.dataset.val);
-      btn.classList.toggle('active', val <= state.rating);
-    });
-    el.ratingNum.textContent = state.rating ? state.rating.toFixed(1) : '';
-  }
-  el.starsWrap.addEventListener('click', e=>{
-    const btn = e.target.closest('.star-btn');
-    if(!btn) return;
-    state.rating = Number(btn.dataset.val);
-    renderStars();
-  });
-  renderStars();
+        function renderGallery() {
+          el.gallery.innerHTML = '';
+          state.images.forEach((src) => {
+            const d = document.createElement('div');
+            d.className = 'thumb';
+            d.innerHTML = `<img alt="미리보기" />`;
+            d.querySelector('img').src = src;
+            el.gallery.appendChild(d);
+          });
+        }
 
-  // ---------- images ----------
-  el.btnPickImage.addEventListener('click', ()=> el.fileInput.click());
-  el.fileInput.addEventListener('change', async (e)=>{
-    const files = Array.from(e.target.files || []);
-    for(const f of files){
-      if(!f.type.startsWith('image/')) continue;
-      const dataURL = await fileToDataURL(f);
-      state.images.push(dataURL);
-    }
-    renderGallery();
-    e.target.value = ''; // reset for re-select
-  });
+        // ---------- align ----------
+        function setAlign(a) {
+          state.align = a;
+          el.editor.classList.remove(
+            'align-left',
+            'align-center',
+            'align-right'
+          );
+          el.editor.classList.add('align-' + a);
+        }
+        el.btnAlignLeft.onclick = () => setAlign('left');
+        el.btnAlignCenter.onclick = () => setAlign('center');
+        el.btnAlignRight.onclick = () => setAlign('right');
 
-  function fileToDataURL(file){
-    return new Promise((res,rej)=>{
-      const fr = new FileReader();
-      fr.onload = ()=> res(fr.result);
-      fr.onerror = rej;
-      fr.readAsDataURL(file);
-    });
-  }
+        // ---------- draft (localStorage) ----------
+        const DRAFT_KEY = 'draft.write';
+        function saveDraft() {
+          const draft = {
+            title: el.title.value,
+            place: state.place,
+            rating: state.rating,
+            images: state.images,
+            align: state.align,
+            bodyHTML: el.editor.innerHTML,
+            savedAt: Date.now(),
+          };
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+          toast('임시저장 완료!');
+        }
+        function restoreDraft() {
+          try {
+            const raw = localStorage.getItem(DRAFT_KEY);
+            if (!raw) return;
+            const d = JSON.parse(raw);
+            el.title.value = d.title || '';
+            state.place = d.place || null;
+            setPlaceText(state.place);
+            state.rating = d.rating || 0;
+            renderStars();
+            state.images = Array.isArray(d.images) ? d.images : [];
+            renderGallery();
+            setAlign(d.align || 'left');
+            if (d.bodyHTML) el.editor.innerHTML = d.bodyHTML;
+            toast('임시저장 불러왔어요');
+          } catch (e) {}
+        }
+        el.btnDraft.addEventListener('click', saveDraft);
+        restoreDraft();
 
-  function renderGallery(){
-    el.gallery.innerHTML = '';
-    state.images.forEach(src=>{
-      const d = document.createElement('div');
-      d.className = 'thumb';
-      d.innerHTML = `<img alt="미리보기" />`;
-      d.querySelector('img').src = src;
-      el.gallery.appendChild(d);
-    });
-  }
+        // ---------- place picker (modal built here) ----------
+        const modal = createPlaceModal();
+        document.body.appendChild(modal.root);
+        el.btnPickLocation.addEventListener('click', () => modal.open());
 
-  // ---------- align ----------
-  function setAlign(a){
-    state.align = a;
-    el.editor.classList.remove('align-left','align-center','align-right');
-    el.editor.classList.add('align-' + a);
-  }
-  el.btnAlignLeft.onclick   = ()=> setAlign('left');
-  el.btnAlignCenter.onclick = ()=> setAlign('center');
-  el.btnAlignRight.onclick  = ()=> setAlign('right');
+        function setPlaceText(place) {
+          if (!place) {
+            el.placeText.textContent = '위치추가 (가게위치 등록 필수)';
+            el.placeText.style.color = 'rgba(0,0,0,.44)';
+          } else {
+            el.placeText.textContent = place.name;
+            el.placeText.style.color = '#000';
+          }
+        }
 
-  // ---------- draft (localStorage) ----------
-  const DRAFT_KEY = 'draft.write';
-  function saveDraft(){
-    const draft = {
-      title: el.title.value,
-      place: state.place,
-      rating: state.rating,
-      images: state.images,
-      align: state.align,
-      bodyHTML: el.editor.innerHTML,
-      savedAt: Date.now()
-    };
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-    toast('임시저장 완료!');
-  }
-  function restoreDraft(){
-    try{
-      const raw = localStorage.getItem(DRAFT_KEY);
-      if(!raw) return;
-      const d = JSON.parse(raw);
-      el.title.value = d.title || '';
-      state.place = d.place || null;
-      setPlaceText(state.place);
-      state.rating = d.rating || 0;
-      renderStars();
-      state.images = Array.isArray(d.images) ? d.images : [];
-      renderGallery();
-      setAlign(d.align || 'left');
-      if (d.bodyHTML) el.editor.innerHTML = d.bodyHTML;
-      toast('임시저장 불러왔어요');
-    }catch(e){}
-  }
-  el.btnDraft.addEventListener('click', saveDraft);
-  restoreDraft();
-
-  // ---------- place picker (modal built here) ----------
-  const modal = createPlaceModal();
-  document.body.appendChild(modal.root);
-  el.btnPickLocation.addEventListener('click', ()=> modal.open());
-
-  function setPlaceText(place){
-    if (!place){
-      el.placeText.textContent = '위치추가 (가게위치 등록 필수)';
-      el.placeText.style.color = 'rgba(0,0,0,.44)';
-    } else {
-      el.placeText.textContent = place.name;
-      el.placeText.style.color = '#000';
-    }
-  }
-
-  function createPlaceModal(){
-    const root = document.createElement('div');
-    root.className = 'modal';
-    root.innerHTML = `
+        function createPlaceModal() {
+          const root = document.createElement('div');
+          root.className = 'modal';
+          root.innerHTML = `
       <div class="sheet" role="dialog" aria-modal="true">
         <header><strong>위치 선택</strong><button data-close>닫기</button></header>
         <div class="list">
@@ -381,129 +696,234 @@ function earnBlogReviewPoint(placeName, amount = 200) {
       </div>
     `;
 
-    function render(){
-      const school  = window.MockAPI.resolveSchool(window.MockAPI.getSchoolSaved()) || {lat:37.42, lng:127.1265, radius:5_000};
-      const markets = window.MockAPI.listMarketsNear(school);
-      const places  = window.MockAPI.listPlaces();
+          function render() {
+            const school = window.MockAPI.resolveSchool(
+              window.MockAPI.getSchoolSaved()
+            ) || { lat: 37.42, lng: 127.1265, radius: 5_000 };
+            const markets = window.MockAPI.listMarketsNear(school);
+            const places = window.MockAPI.listPlaces();
 
-      const gM = root.querySelector('[data-group="markets"]');
-      const gP = root.querySelector('[data-group="places"]');
-      gM.innerHTML = markets.map(m=>`
+            const gM = root.querySelector('[data-group="markets"]');
+            const gP = root.querySelector('[data-group="places"]');
+            gM.innerHTML =
+              markets
+                .map(
+                  (m) => `
         <div class="item" data-type="market" data-id="${m.id}">
           <div>${m.name} <small>· ${Math.round(m.distance_m)}m</small></div>
-          <small>${m.area||''}</small>
-        </div>`).join('') || `<div class="empty">근처 시장 없음</div>`;
-      gP.innerHTML = places.map(p=>`
+          <small>${m.area || ''}</small>
+        </div>`
+                )
+                .join('') || `<div class="empty">근처 시장 없음</div>`;
+            gP.innerHTML =
+              places
+                .map(
+                  (p) => `
         <div class="item" data-type="place" data-id="${p.id}">
-          <div>${p.name} <small>· ${p.category||''}</small></div>
+          <div>${p.name} <small>· ${p.category || ''}</small></div>
           <small>⭐ ${p.rating}</small>
-        </div>`).join('') || `<div class="empty">등록된 상점 없음</div>`;
-    }
+        </div>`
+                )
+                .join('') || `<div class="empty">등록된 상점 없음</div>`;
+          }
 
-    root.addEventListener('click', (e)=>{
-      if(e.target.matches('[data-close]')) close();
-      const it = e.target.closest('.item');
-      if(it){
-        const type = it.dataset.type;
-        const id   = it.dataset.id;
-        if (type === 'market'){
-          const school = window.MockAPI.resolveSchool(window.MockAPI.getSchoolSaved()) || {lat:37.42, lng:127.1265, radius:5_000};
-          const m = window.MockAPI.listMarketsNear(school).find(x=>x.id===id) || {id, name:'시장'};
-          state.place = { id: m.id, type:'market', name: m.name };
-        } else {
-          const p = window.MockAPI.listPlaces().find(x=>x.id===id) || {id, name:'가게'};
-          state.place = { id: p.id, type:'place', name: p.name };
+          root.addEventListener('click', (e) => {
+            if (e.target.matches('[data-close]')) close();
+            const it = e.target.closest('.item');
+            if (it) {
+              const type = it.dataset.type;
+              const id = it.dataset.id;
+              if (type === 'market') {
+                const school = window.MockAPI.resolveSchool(
+                  window.MockAPI.getSchoolSaved()
+                ) || { lat: 37.42, lng: 127.1265, radius: 5_000 };
+                const m = window.MockAPI.listMarketsNear(school).find(
+                  (x) => x.id === id
+                ) || { id, name: '시장' };
+                state.place = { id: m.id, type: 'market', name: m.name };
+              } else {
+                const p = window.MockAPI.listPlaces().find(
+                  (x) => x.id === id
+                ) || { id, name: '가게' };
+                state.place = { id: p.id, type: 'place', name: p.name };
+              }
+              setPlaceText(state.place);
+              close();
+            }
+          });
+
+          function open() {
+            render();
+            root.style.display = 'flex';
+          }
+          function close() {
+            root.style.display = 'none';
+          }
+
+          return { root, open, close };
         }
-        setPlaceText(state.place);
-        close();
+
+        // ---------- submit & back ----------
+        el.btnSubmit.addEventListener('click', () => {
+          const title = el.title.value.trim();
+          const body = el.editor.innerHTML;
+          const bodyText = stripHTML(body);
+
+          if (!title) {
+            alert('제목을 입력하세요.');
+            el.title.focus();
+            return;
+          }
+          if (!state.place) {
+            alert('위를 선택하세요.');
+            el.btnPickLocation.focus();
+            return;
+          }
+          if (!state.rating) {
+            alert('별점을 선택하세요.');
+            return;
+          }
+          if (!bodyText) {
+            alert('본문을 입력하세요.');
+            el.editor.focus();
+            return;
+          }
+
+          // 작성자 정보
+          const me = getCurrentUser();
+
+          // 저장 포스트 객체
+          const post = {
+            id: 'post_' + Date.now(),
+            author: me.name || '나', // 닉네임 저장
+            authorId: me.id || null, // ID 저장
+            userId: me.id || null, // 호환용
+            createdAt: Date.now(),
+            title,
+            content: bodyText,
+            images: state.images.slice(),
+            likes: 0,
+            comments: 0,
+
+            // 추가 메타(에디터용)
+            place: state.place,
+            rating: state.rating,
+            align: state.align,
+            bodyHTML: body,
+            type: 'blog', // 블로그 글 구분
+          };
+
+          // 저장
+          const STORAGE_KEY = 'BOARD_POSTS';
+          const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+          all.unshift(post);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+
+          // 위치별 인덱스 유지
+          const key = `posts.place.${state.place.id}`;
+          const idx = JSON.parse(localStorage.getItem(key) || '[]');
+          idx.unshift(post.id);
+          localStorage.setItem(key, JSON.stringify(idx));
+
+          // ✅ 블로그 리뷰 200P 적립 (장소명으로 타이틀 생성)
+          try {
+            earnBlogReviewPoint(state.place?.name || '내가 쓴 리뷰');
+          } catch (_) {
+            /* 실패해도 글 저장은 진행 */
+          }
+
+          // 초안 제거 & 이동
+          localStorage.removeItem(DRAFT_KEY);
+
+          // 등록 완료 모달 표시
+          openRewardModal();
+        });
+
+        el.btnBack.addEventListener('click', () => {
+          const hasContent =
+            el.title.value.trim() ||
+            stripHTML(el.editor.innerHTML) ||
+            state.images.length ||
+            state.rating ||
+            state.place;
+          if (!hasContent) {
+            location.href = 'board.html';
+            return;
+          }
+          if (
+            confirm(
+              '글쓰기를 중단할까요? (임시저장을 눌러두면 나중에 이어 쓸 수 있어요)'
+            )
+          ) {
+            location.href = 'board.html';
+          }
+        });
+
+        // ---------- accessibility niceties ----------
+        $('#btnEmpty2').addEventListener('click', () =>
+          toast('준비중 기능이에요!')
+        );
+        $('#btnEmpty6').addEventListener('click', () =>
+          toast('준비중 기능이에요!')
+        );
+      })();
+      // ===== 등록 완료 모달 컨트롤 =====
+      function openRewardModal() {
+        var dim = document.getElementById('rewardModal');
+        if (!dim) return;
+        dim.classList.add('open');
+        dim.setAttribute('aria-hidden', 'false');
+
+        // anywhere click -> close & go to board
+        const handleClickAnywhere = (e) => {
+          // 링크 눌렀으면 기본 동작(보상 안내 페이지 이동)을 그대로 두고 닫기만
+          if (e.target.closest && e.target.closest('#rewardLink')) {
+            dim.classList.remove('open');
+            dim.setAttribute('aria-hidden', 'true');
+            // 링크 이동은 <a> 기본 동작
+            cleanup();
+            return;
+          }
+          // 그 외엔 닫고 게시판으로 이동
+          closeAndGoBoard();
+        };
+
+        const handleKey = (e) => {
+          if (e.key === 'Escape') closeAndGoBoard();
+        };
+
+        function closeAndGoBoard() {
+          dim.classList.remove('open');
+          dim.setAttribute('aria-hidden', 'true');
+          cleanup();
+          location.href = 'board.html';
+        }
+
+        function cleanup() {
+          dim.removeEventListener('click', handleClickAnywhere, true);
+          window.removeEventListener('keydown', handleKey);
+        }
+
+        // 화면 어디라도 클릭 시 닫히도록 캡처 단계에서 리스닝
+        dim.addEventListener('click', handleClickAnywhere, true);
+        window.addEventListener('keydown', handleKey);
       }
-    });
-
-    function open(){ render(); root.style.display='flex'; }
-    function close(){ root.style.display='none'; }
-
-    return { root, open, close };
-  }
-
-  // ---------- submit & back ----------
-  el.btnSubmit.addEventListener('click', ()=>{
-    const title = el.title.value.trim();
-    const body  = el.editor.innerHTML;
-    const bodyText = stripHTML(body);
-
-    if (!title){ alert('제목을 입력하세요.'); el.title.focus(); return; }
-    if (!state.place){ alert('위를 선택하세요.'); el.btnPickLocation.focus(); return; }
-    if (!state.rating){ alert('별점을 선택하세요.'); return; }
-    if (!bodyText){ alert('본문을 입력하세요.'); el.editor.focus(); return; }
-
-    // 작성자 정보
-    const me = getCurrentUser();
-
-    // 저장 포스트 객체
-    const post = {
-      id: 'post_' + Date.now(),
-      author:  me.name || '나',      // 닉네임 저장
-      authorId: me.id || null,       // ID 저장
-      userId:  me.id || null,        // 호환용
-      createdAt: Date.now(),
-      title,
-      content: bodyText,
-      images: state.images.slice(),
-      likes: 0,
-      comments: 0,
-
-      // 추가 메타(에디터용)
-      place: state.place,
-      rating: state.rating,
-      align: state.align,
-      bodyHTML: body,
-      type: 'blog'                   // 블로그 글 구분
-    };
-
-    // 저장
-    const STORAGE_KEY = 'BOARD_POSTS';
-    const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    all.unshift(post);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-
-    // 위치별 인덱스 유지
-    const key = `posts.place.${state.place.id}`;
-    const idx = JSON.parse(localStorage.getItem(key) || '[]');
-    idx.unshift(post.id);
-    localStorage.setItem(key, JSON.stringify(idx));
-
-// ✅ 블로그 리뷰 200P 적립 (장소명으로 타이틀 생성)
-try {
-  earnBlogReviewPoint(state.place?.name || '내가 쓴 리뷰');
-} catch (_) { /* 실패해도 글 저장은 진행 */ }
-
-// 초안 제거 & 이동
-localStorage.removeItem(DRAFT_KEY);
-location.href = 'board.html';
-
-  });
-
-  el.btnBack.addEventListener('click', ()=>{
-    const hasContent =
-      el.title.value.trim() ||
-      stripHTML(el.editor.innerHTML) ||
-      state.images.length ||
-      state.rating ||
-      state.place;
-    if(!hasContent){
-      location.href = 'board.html';
-      return;
-    }
-    if (confirm('글쓰기를 중단할까요? (임시저장을 눌러두면 나중에 이어 쓸 수 있어요)')){
-      location.href = 'board.html';
-    }
-  });
-
-  // ---------- accessibility niceties ----------
-  $('#btnEmpty2').addEventListener('click', ()=> toast('준비중 기능이에요!'));
-  $('#btnEmpty6').addEventListener('click', ()=> toast('준비중 기능이에요!'));
-})();
-</script>
-
-</body>
+    </script>
+    <!-- 등록 완료 모달 -->
+    <div
+      id="rewardModal"
+      class="reward-dim"
+      aria-hidden="true"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="reward-card">
+        <div class="title">등록되었습니다</div>
+        <div class="msg">200p 리워드가 적립되었습니다.</div>
+        <a class="link" id="rewardLink" href="../mypage/reward.html">
+          리워드 포인트 알아보기
+        </a>
+      </div>
+    </div>
+  </body>
 </html>

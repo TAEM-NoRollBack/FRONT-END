@@ -35,9 +35,11 @@
   });
 
   // 상품권 교환
-  document.getElementById('btnCoupon')?.addEventListener('click', () => {
-    alert('상품권 교환은 곧 연동된다. Hold tight, bro.');
-  });
+// 상품권 교환 (같은 탭 이동)
+document.getElementById('btnCoupon')?.addEventListener('click', () => {
+  location.href = 'https://www.seongnam.go.kr/city/1001573/11078/contents.do';
+});
+
 })();
 document.getElementById('btnHistory')?.addEventListener('click', () => {
   location.href = './point.html'; // 같은 폴더에 point.html
@@ -233,3 +235,33 @@ window.addEventListener('storage', (e) => {
   if (blogEl)   blogEl.textContent   = String(countMyBoardPosts());
   if (savedEl)  savedEl.textContent  = String(getSavedCount());
 })();
+// === Points balance (read-only) ===
+const POINTS_KEY = 'points.state.v1';
+
+function readPointsState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(POINTS_KEY));
+    if (s && typeof s === 'object') return s;
+  } catch {}
+  // 포인트 정보가 아직 없으면 0으로 표시(포인트 페이지/글쓰기에서 생성됨)
+  return { balance: 0, history: [] };
+}
+
+function renderMyPointsBalance() {
+  const el = document.getElementById('points');
+  if (!el) return;
+  const { balance } = readPointsState();
+  el.textContent = Number(balance || 0).toLocaleString('ko-KR');
+}
+
+// 최초 렌더
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderMyPointsBalance);
+} else {
+  renderMyPointsBalance();
+}
+// 다른 탭/페이지에서 포인트가 바뀌었을 때 갱신
+window.addEventListener('pageshow', renderMyPointsBalance);
+window.addEventListener('storage', (e) => {
+  if (e.key === POINTS_KEY) renderMyPointsBalance();
+});
