@@ -1,0 +1,43 @@
+:root{
+  --app-w: 393px;
+  --bg-h: 2048px;
+  /* ↓ 여기 숫자 키우면 더 아래로 내려감 */
+  --back-top: 72px;   /* 예: 72px */
+  --back-left: 12px;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+
+body{
+  background: #fff;             /* 바탕색 필요 없으면 제거 */
+  overflow-x: hidden;           /* 가로 스크롤 방지 */
+}
+
+.app{
+  width: var(--app-w);
+  min-height: var(--bg-h);      /* 페이지가 이미지 높이만큼 스크롤되도록 */
+  margin: 0 auto;
+  background: url("./reward.png") top center / var(--app-w) auto no-repeat;
+  /* 스크롤 시 배경도 같이 움직이게(원하면 fixed로 바꿔도 됨) */
+  background-attachment: scroll;
+}
+.back-btn{
+  position: absolute;                   /* ✅ 화면 고정 */
+  top: var(--back-top);
+  left: calc((100vw - var(--app-w)) / 2 + var(--back-left));  /* 중앙 배치된 393 기준 좌표 */
+  z-index: 20;
+
+  width: 40px; height: 40px;
+  background: none; border: 0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; touch-action: manipulation;
+}
+
+.back-btn svg{
+  width: 9.485px;
+  height: 16.97px;
+  display: block;
+  flex-shrink: 0;
+  fill: #FF83A2;
+}

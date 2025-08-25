@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>시장백서 스플래시</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        overflow: hidden;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Arial', sans-serif;
+      }
+
+      .splash-container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .splash-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-color: #f5f3f0;
+        transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1;
+      }
+
+      .splash-image:nth-child(1) {
+        background-image: url('splash1.png');
+      }
+
+      .splash-image:nth-child(2) {
+        background-image: url('splash2.png');
+      }
+
+      .splash-image:nth-child(3) {
+        background-image: url('splash3.png');
+      }
+
+      .splash-image.active {
+        opacity: 1;
+        z-index: 2;
+      }
+
+      .splash-image.fade-out {
+        opacity: 0;
+        z-index: 1;
+      }
+
+      /* 로딩 인디케이터 */
+      .loading-dots {
+        position: absolute;
+        bottom: 50px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 8px;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.3);
+        animation: pulse 2s infinite;
+      }
+
+      .dot:nth-child(1) {
+        animation-delay: 0s;
+      }
+      .dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      /* 터치 안내 텍스트 */
+      .touch-hint {
+        position: absolute;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #2c2c2c;
+        font-size: 18px;
+        font-weight: 600;
+        text-align: center;
+        animation: fadeInOut 3s infinite;
+        z-index: 10;
+        text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
+        letter-spacing: 0.5px;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.3;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.2);
+        }
+      }
+
+      @keyframes fadeInOut {
+        0%,
+        100% {
+          opacity: 0.7;
+          transform: translateX(-50%) scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: translateX(-50%) scale(1.05);
+        }
+      }
+
+      /* 자동 재시작 제거 */
+      .splash-container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="splash-container">
+      <div class="splash-image"></div>
+      <div class="splash-image"></div>
+      <div class="splash-image"></div>
+
+      <div class="loading-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+
+      <div class="touch-hint">화면을 터치하여 시작하세요</div>
+    </div>
+
+    <script>
+      let currentImage = 0;
+      const images = document.querySelectorAll('.splash-image');
+      const totalImages = images.length;
+      let isTransitioning = false;
+      let slideInterval;
+      let initialTimeout;
+
+      function crossFadeToNext() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        const currentImg = images[currentImage];
+        const nextIndex = (currentImage + 1) % totalImages;
+        const nextImg = images[nextIndex];
+
+        // 다음 이미지를 뒤에 배치하고 서서히 나타나게 함
+        nextImg.style.zIndex = '2';
+        currentImg.style.zIndex = '1';
+
+        // 다음 이미지를 서서히 나타나게 함
+        nextImg.classList.add('active');
+
+        // 1.5초 후 현재 이미지를 완전히 숨김
+        setTimeout(() => {
+          currentImg.classList.remove('active');
+          currentImg.classList.add('fade-out');
+
+          // 전환 완료 후 정리
+          setTimeout(() => {
+            currentImg.classList.remove('fade-out');
+            currentImg.style.zIndex = '1';
+            isTransitioning = false;
+          }, 100);
+        }, 1500);
+
+        currentImage = nextIndex;
+      }
+
+      function startSlideshow() {
+        // 첫 번째 이미지 표시
+        images[0].classList.add('active');
+
+        // 3초 후부터 4초마다 전환
+        initialTimeout = setTimeout(() => {
+          crossFadeToNext();
+          slideInterval = setInterval(crossFadeToNext, 4000);
+        }, 3000);
+      }
+
+      function navigateToLogin() {
+        // 슬라이드쇼 중단
+        if (slideInterval) clearInterval(slideInterval);
+        if (initialTimeout) clearTimeout(initialTimeout);
+
+        // 로그인 페이지로 이동
+        window.location.href = '../login/login.html';
+      }
+
+      // 페이지 로드 후 실행
+      window.addEventListener('load', function () {
+        startSlideshow();
+
+        // 터치/클릭 이벤트 등록
+        const container = document.querySelector('.splash-container');
+
+        // 터치 이벤트 (모바일)
+        container.addEventListener('touchstart', function (e) {
+          e.preventDefault();
+          navigateToLogin();
+        });
+
+        // 클릭 이벤트 (데스크톱)
+        container.addEventListener('click', function (e) {
+          e.preventDefault();
+          navigateToLogin();
+        });
+
+        // 키보드 이벤트 (Enter, Space)
+        document.addEventListener('keydown', function (e) {
+          if (e.code === 'Enter' || e.code === 'Space') {
+            e.preventDefault();
+            navigateToLogin();
+          }
+        });
+      });
+
+      // 이미지 로드 확인 (디버깅용)
+      images.forEach((img, index) => {
+        const testImg = new Image();
+        testImg.onload = () => console.log(`splash${index + 1}.png 로드 성공`);
+        testImg.onerror = () =>
+          console.error(`splash${index + 1}.png 로드 실패`);
+        testImg.src = `splash${index + 1}.png`;
+      });
+    </script>
+  </body>
+</html>

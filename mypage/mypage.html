@@ -7,7 +7,6 @@
       content="width=393, initial-scale=1.0, maximum-scale=1.0"
     />
     <title>마이페이지</title>
-    <!-- Pretendard -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <link
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
@@ -17,25 +16,17 @@
   </head>
   <body>
     <div class="app">
-      <!-- 상단바 -->
       <header class="topbar">
         <div class="topbar-inner">
           <div class="status-icons" aria-hidden="true"></div>
         </div>
       </header>
 
-      <!-- 본문 -->
       <main class="main">
-        <!-- 프로필 헤더 -->
-        <!-- 프로필 헤더 -->
+        <!-- 프로필 -->
         <section class="profile">
           <div class="avatar" aria-hidden="true"></div>
-
-          <div class="who">
-            <h1 id="displayName">양동근 2</h1>
-          </div>
-
-          <!-- 우측 끝: 회원정보수정 + SVG(글 바로 아래) -->
+          <div class="who"><h1 id="displayName">양동근 2</h1></div>
           <div class="edit-wrap">
             <button id="btnEditProfile" class="edit-link" type="button">
               회원정보수정
@@ -63,31 +54,64 @@
           </div>
         </section>
 
-        <!-- 통계 (테두리 X) -->
+        <!-- 통계 -->
         <section class="stats" aria-label="활동 통계">
           <div class="stat">
             <div class="label">리뷰</div>
             <div class="value" id="countReview">0</div>
           </div>
-          <div class="sep"></div>
+          <div class="sep-line" aria-hidden="true">
+            <svg viewBox="0 0 50 1" preserveAspectRatio="none">
+              <line
+                x1="0"
+                y1="0.5"
+                x2="50"
+                y2="0.5"
+                stroke="#000"
+                stroke-width="1"
+                vector-effect="non-scaling-stroke"
+              />
+            </svg>
+          </div>
           <div class="stat">
             <div class="label">블로그 리뷰</div>
             <div class="value" id="countBlog">0</div>
           </div>
-          <div class="sep"></div>
+          <div class="sep-line" aria-hidden="true">
+            <svg viewBox="0 0 50 1" preserveAspectRatio="none">
+              <line
+                x1="0"
+                y1="0.5"
+                x2="50"
+                y2="0.5"
+                stroke="#000"
+                stroke-width="1"
+                vector-effect="non-scaling-stroke"
+              />
+            </svg>
+          </div>
           <div class="stat">
             <div class="label">저장된 맛집</div>
             <div class="value" id="countSaved">0</div>
           </div>
         </section>
 
-        <!-- 리워드 포인트 (박스 X) -->
+        <!-- 통계 아래 핑크 박스 -->
+        <section class="promo-box" aria-label="리뷰 프로모션">
+          <div class="promo-icon" aria-hidden="true"></div>
+          <div class="promo-text">
+            <div class="promo-title">리뷰 작성하고 상품권으로 교환해요!</div>
+            <div class="promo-sub">블로그 리뷰 1건당 200P 지급</div>
+          </div>
+          <div class="promo-coin" aria-hidden="true"></div>
+        </section>
+
+        <!-- 포인트/교환 -->
         <section class="points">
           <div class="points-row">
-            <h2 class="points-title">리워드 포인트</h2>
+            <h2 class="points-title">내 포인트</h2>
             <div class="points-right">
-              <div class="points-amt"><b id="points">0</b>P</div>
-              <!-- 포인트 바로 아래 위치 -->
+              <div class="points-amt"><b id="points">4,000</b>P</div>
               <button id="btnHistory" class="points-history" type="button">
                 적립내역확인
               </button>
@@ -97,10 +121,40 @@
           <button class="btn-primary" id="btnCoupon" type="button">
             상품권 교환
           </button>
+
+          <!-- 제목만 구분선 '위' -->
+
+          <div class="exchange-block">
+            <h3 class="exchange-title">교환 안내</h3>
+
+            <!-- 구분선 (320) -->
+            <div class="points-divider" aria-hidden="true">
+              <svg viewBox="0 0 320 1" preserveAspectRatio="none">
+                <line
+                  x1="0"
+                  y1="0.5"
+                  x2="320"
+                  y2="0.5"
+                  stroke="#000"
+                  stroke-width="1.5"
+                  vector-effect="non-scaling-stroke"
+                />
+              </svg>
+            </div>
+
+            <!-- 상세 내용: 구분선과 동일 폭 320에 하드락 -->
+            <div class="exchange-desc">
+              “상품권 교환” 버튼 클릭 시 성남사랑상품권 구매페이지로
+              연결됩니다.<br />
+              4,000P 이상 (리뷰 20개이상) 부터 구매페이지로 이동 가능합니다.<br />
+              포인트는 현금/상품권으로 환불되지 않으며, 서비스 내에서만
+              표시됩니다.
+            </div>
+          </div>
         </section>
       </main>
 
-      <!-- 하단바 (home.html과 동일한 구조를 가정) -->
+      <!-- 탭바 -->
       <nav class="tabbar">
         <a href="../mainpage/home.html" class="tab active">
           <span class="icon-slot">
@@ -113,7 +167,6 @@
           </span>
           <span class="label">홈</span>
         </a>
-
         <a href="#" class="tab">
           <span class="icon-slot">
             <svg class="ico-save" viewBox="0 0 26 31" aria-hidden="true">
@@ -127,7 +180,6 @@
           </span>
           <span class="label">저장</span>
         </a>
-
         <a href="#" class="tab">
           <span class="icon-slot">
             <svg class="ico-board" viewBox="0 0 27 30" aria-hidden="true">
@@ -139,7 +191,6 @@
           </span>
           <span class="label">게시판</span>
         </a>
-
         <a href="../mypage/mypage.html" class="tab">
           <span class="icon-slot">
             <svg class="ico-mypage" viewBox="0 0 25 25" aria-hidden="true">

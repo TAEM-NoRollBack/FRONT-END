@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=393, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <title>포인트 안내</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./reward.css" />
+  </head>
+  <body>
+    <div class="app">
+      <button
+        class="back-btn"
+        id="btnBack"
+        type="button"
+        aria-label="뒤로 가기"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="10"
+          height="17"
+          viewBox="0 0 10 17"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M2.41379 8.485L9.48479 15.556L8.07079 16.97L0.292786 9.192C0.105315 9.00447 0 8.75016 0 8.485C0 8.21984 0.105315 7.96553 0.292786 7.778L8.07079 0L9.48479 1.414L2.41379 8.485Z"
+            fill="#000"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- ✅ 버튼 뒤에 스크립트 배치 -->
+    <script>
+      (function () {
+        var btn = document.getElementById("btnBack");
+        if (!btn) return;
+        btn.addEventListener("click", function () {
+          if (document.referrer && history.length > 1) {
+            history.back();
+          } else {
+            location.href = "./point.html"; // 폴백
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

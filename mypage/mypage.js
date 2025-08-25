@@ -39,3 +39,6 @@
     alert('상품권 교환은 곧 연동된다. Hold tight, bro.');
   });
 })();
+document.getElementById('btnHistory')?.addEventListener('click', () => {
+  location.href = './point.html'; // 같은 폴더에 point.html
+});
